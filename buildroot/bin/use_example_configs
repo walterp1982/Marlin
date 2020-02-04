@@ -33,12 +33,13 @@ CONFIGS="https://raw.githubusercontent.com/MarlinFirmware/Configurations/$REPO/c
 
 restore_configs
 
+EXAMPLES="https://raw.githubusercontent.com/MarlinFirmware/Configurations/master/config/examples"
+
 cd Marlin
 
-$TOOL "$CONFIGS/Configuration.h"     >/dev/null 2>&1 && mv wgot Configuration.h
-$TOOL "$CONFIGS/Configuration_adv.h" >/dev/null 2>&1 && mv wgot Configuration_adv.h
-$TOOL "$CONFIGS/_Bootscreen.h"       >/dev/null 2>&1 && mv wgot _Bootscreen.h
-$TOOL "$CONFIGS/_Statusscreen.h"     >/dev/null 2>&1 && mv wgot _Statusscreen.h
-
+wget -q "$EXAMPLES/$@/Configuration.h"     -O wgot && mv wgot Configuration.h
+wget -q "$EXAMPLES/$@/Configuration_adv.h" -O wgot && mv wgot Configuration_adv.h
+wget -q "$EXAMPLES/$@/_Bootscreen.h"       -O wgot && mv wgot _Bootscreen.h
+wget -q "$EXAMPLES/$@/_Statusscreen.h"     -O wgot && mv wgot _Statusscreen.h
 rm -f wgot
 cd - >/dev/null
