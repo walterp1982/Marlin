@@ -568,9 +568,26 @@ void GCodeQueue::get_serial_commands() {
       const bool is_eol = ISEOL(sd_char);
       if (is_eol || card_eof) {
 
-        // Reset stream state, terminate the buffer, and commit a non-empty command
-        if (!is_eol && sd_count) ++sd_count;          // End of file with no newline
-        if (!process_line_done(sd_input_state, command.buffer, sd_count)) {
+          if (IS_SD_PRINTING())
+            sd_count = 0; // If a sub-file was printing, continue from call point
+          else {
+            SERIAL_ECHOLNPGM(MSG_FILE_PRINTED);
+            #if ENABLED(PRINTER_EVENT_LEDS)
+              printerEventLEDs.onPrintCompleted();
+              #if HAS_RESUME_CONTINUE
+                inject_P(PSTR("M0 S"
+                  #if HAS_LCD_MENU
+                    "1800"
+                  #else
+                    "60"
+                  #endif
+                ));
+              #endif
+            #endif // PRINTER_EVENT_LEDS
+          }
+        }
+        else if (n == -1)
+          SERIAL_ERROR_MSG(MSG_SD_ERR_READ);
 
           // M808 L saves the sdpos of the next line. M808 loops to a new sdpos.
           TERN_(GCODE_REPEAT_MARKERS, repeat.early_parse_M808(command.buffer));
