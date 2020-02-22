@@ -75,8 +75,8 @@ public:
   // Called by the Temperature or Stepper ISR to
   // apply accumulated babysteps to the axes.
   //
-  static void task() {
-    LOOP_LE_N(i, BS_AXIS_IND(Z_AXIS)) step_axis(BS_AXIS(i));
+  static inline void task() {
+    LOOP_L_N(axis, BS_TODO_AXIS(Z_AXIS)) step_axis((AxisEnum)axis);
   }
 
 private:
