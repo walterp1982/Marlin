@@ -20,10 +20,6 @@
  *
  */
 
-#if __GNUC__ > 8
-  #pragma GCC diagnostic ignored "-Waddress-of-packed-member"
-#endif
-
 /**
  * sd/SdBaseFile.cpp
  *
