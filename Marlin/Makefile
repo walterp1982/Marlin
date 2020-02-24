@@ -981,8 +981,8 @@ extcoff: $(TARGET).elf
 	$P $(OBJCOPY) -O binary -R .eeprom $< $@
 
 .elf.eep:
-	-$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
-	  --change-section-lma .eeprom=0 -O $(FORMAT) $< $@
+  -$(OBJCOPY) -j .eeprom --set-section-flags=.eeprom="alloc,load" \
+    --change-section-lma .eeprom=0 -O $(FORMAT) $< $@
 
 # Create extended listing file from ELF output file.
 .elf.lss:
@@ -995,8 +995,8 @@ extcoff: $(TARGET).elf
 # Link: create ELF output file from library.
 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJ) Configuration.h
-	$(Pecho) "  CXX   $@"
-	$P $(CXX) $(LD_PREFIX) $(ALL_CXXFLAGS) -o $@ -L. $(OBJ) $(LDFLAGS) $(LD_SUFFIX)
+  $(Pecho) "  CXX   $@"
+  $P $(CC) $(LD_PREFIX) $(ALL_CXXFLAGS) -o $@ -L. $(OBJ) $(LDFLAGS) $(LD_SUFFIX)
 
 # Object files that were found in "src" will be stored in $(BUILD_DIR)
 # in directories that mirror the structure of "src"
