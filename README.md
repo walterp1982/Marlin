@@ -43,6 +43,7 @@ Marlin 2.0 introduces a layer of abstraction so that all the existing high-level
   [Teensy 3.5](https://www.pjrc.com/store/teensy35.html)|ARM-Cortex M4|120MHz|512k|192k|3.3-5V|yes
   [Teensy 3.6](https://www.pjrc.com/store/teensy36.html)|ARM-Cortex M4|180MHz|1M|256k|3.3V|yes
 
+<<<<<<< HEAD
 ### HALs in Development
 
   name|processor|speed|flash|sram|logic|fpu
@@ -56,6 +57,9 @@ Marlin 2.0 introduces a layer of abstraction so that all the existing high-level
 Proposed patches should be submitted as a Pull Request against the ([bugfix-2.0.x](https://github.com/MarlinFirmware/Marlin/tree/bugfix-2.0.x)) branch.
 
 - This branch is for fixing bugs and integrating any new features for the duration of the Marlin 2.0.x life-cycle.
+=======
+- Submit **Bug Fixes** as Pull Requests to the ([bugfix-2.0.x](https://github.com/MarlinFirmware/Marlin/tree/bugfix-2.0.x)) branch.
+>>>>>>> c352aeb32e (Remove "dev" branch reference (for now) (#18242))
 - Follow the [Coding Standards](http://marlinfw.org/docs/development/coding_standards.html) to gain points with the maintainers.
 - Please submit your questions and concerns to the [Issue Queue](https://github.com/MarlinFirmware/Marlin/issues).
 
