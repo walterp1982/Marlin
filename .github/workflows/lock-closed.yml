@@ -6,8 +6,8 @@
 name: "Lock closed issue"
 
 on:
-  issues:
-    types: [closed]
+  schedule:
+    - cron: '59 * * * *'
 
 jobs:
   lock:
