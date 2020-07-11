@@ -1303,112 +1303,123 @@ void Temperature::_temp_error(const heater_id_t heater_id, FSTR_P const serial_m
   #endif
 }
 
-void Temperature::max_temp_error(const heater_id_t heater_id) {
-  #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
-    DWIN_Popup_Temperature(1);
-  #endif
-  _temp_error(heater_id, F(STR_T_MAXTEMP), GET_TEXT_F(MSG_ERR_MAXTEMP));
+void Temperature::max_temp_error(const heater_ind_t heater) {
+  _temp_error(heater, PSTR(STR_T_MAXTEMP), GET_TEXT(MSG_ERR_MAXTEMP));
 }
 
-void Temperature::min_temp_error(const heater_id_t heater_id) {
-  #if HAS_DWIN_E3V2_BASIC && (HAS_HOTEND || HAS_HEATED_BED)
-    DWIN_Popup_Temperature(0);
-  #endif
-  _temp_error(heater_id, F(STR_T_MINTEMP), GET_TEXT_F(MSG_ERR_MINTEMP));
+void Temperature::min_temp_error(const heater_ind_t heater) {
+  _temp_error(heater, PSTR(STR_T_MINTEMP), GET_TEXT(MSG_ERR_MINTEMP));
 }
 
-#if HAS_PID_DEBUG
-  bool Temperature::pid_debug_flag; // = false
-#endif
-
-#if HAS_PID_HEATING
-
-  template<typename TT, int MIN_POW, int MAX_POW>
-  class PIDRunner {
-  public:
-    TT &tempinfo;
-    __typeof__(TT::pid) work_pid{0};
-    float temp_iState = 0, temp_dState = 0;
-    bool pid_reset = true;
-
-    PIDRunner(TT &t) : tempinfo(t) { }
-
-    float get_pid_output() {
-
-      #if ENABLED(PID_OPENLOOP)
-
-        return constrain(tempinfo.target, 0, MAX_POW);
-
-      #else // !PID_OPENLOOP
-
-        const float pid_error = tempinfo.target - tempinfo.celsius;
-        if (!tempinfo.target || pid_error < -(PID_FUNCTIONAL_RANGE)) {
-          pid_reset = true;
-          return 0;
-        }
-        else if (pid_error > PID_FUNCTIONAL_RANGE) {
-          pid_reset = true;
-          return MAX_POW;
-        }
-
-        if (pid_reset) {
-          pid_reset = false;
-          temp_iState = 0.0;
-          work_pid.Kd = 0.0;
-        }
-
-        const float max_power_over_i_gain = float(MAX_POW) / tempinfo.pid.Ki - float(MIN_POW);
-        temp_iState = constrain(temp_iState + pid_error, 0, max_power_over_i_gain);
-
-        work_pid.Kp = tempinfo.pid.Kp * pid_error;
-        work_pid.Ki = tempinfo.pid.Ki * temp_iState;
-        work_pid.Kd = work_pid.Kd + PID_K2 * (tempinfo.pid.Kd * (temp_dState - tempinfo.celsius) - work_pid.Kd);
-
-        temp_dState = tempinfo.celsius;
-
-        return constrain(work_pid.Kp + work_pid.Ki + work_pid.Kd + float(MIN_POW), 0, MAX_POW);
-
-      #endif // !PID_OPENLOOP
-    }
-
-    FORCE_INLINE void debug(const_celsius_float_t c, const_float_t pid_out, FSTR_P const name=nullptr, const int8_t index=-1) {
-      if (TERN0(HAS_PID_DEBUG, thermalManager.pid_debug_flag)) {
-        SERIAL_ECHO_START();
-        if (name) SERIAL_ECHOLNF(name);
-        if (index >= 0) SERIAL_ECHO(index);
-        SERIAL_ECHOLNPGM(
-          STR_PID_DEBUG_INPUT, c,
-          STR_PID_DEBUG_OUTPUT, pid_out
-          #if DISABLED(PID_OPENLOOP)
-            , "pTerm", work_pid.Kp, "iTerm", work_pid.Ki, "dTerm", work_pid.Kd
-          #endif
-        );
-      }
-    }
-  };
-
-#endif // HAS_PID_HEATING
-
-#if HAS_HOTEND
+#if HOTENDS
+  #if ENABLED(PID_DEBUG)
+    extern bool PID_Debug_Flag;
+  #endif
 
   float Temperature::get_pid_output_hotend(const uint8_t E_NAME) {
     const uint8_t ee = HOTEND_INDEX;
-
     #if ENABLED(PIDTEMP)
+      #if DISABLED(PID_OPENLOOP)
+        static hotend_pid_t work_pid[HOTENDS];
+        static float temp_iState[HOTENDS] = { 0 },
+                     temp_dState[HOTENDS] = { 0 };
+        static bool pid_reset[HOTENDS] = { false };
+        const float pid_error = temp_hotend[ee].target - temp_hotend[ee].celsius;
 
-      typedef PIDRunner<hotend_info_t, 0, PID_MAX> PIDRunnerHotend;
+        float pid_output;
 
-      static PIDRunnerHotend hotend_pid[HOTENDS] = {
-        #define _HOTENDPID(E) temp_hotend[E],
-        REPEAT(HOTENDS, _HOTENDPID)
-      };
+        if (temp_hotend[ee].target == 0
+          || pid_error < -(PID_FUNCTIONAL_RANGE)
+          #if HEATER_IDLE_HANDLER
+            || hotend_idle[ee].timed_out
+          #endif
+        ) {
+          pid_output = 0;
+          pid_reset[ee] = true;
+        }
+        else if (pid_error > PID_FUNCTIONAL_RANGE) {
+          pid_output = BANG_MAX;
+          pid_reset[ee] = true;
+        }
+        else {
+          if (pid_reset[ee]) {
+            temp_iState[ee] = 0.0;
+            work_pid[ee].Kd = 0.0;
+            pid_reset[ee] = false;
+          }
 
-      const float pid_output = hotend_pid[ee].get_pid_output();
+          work_pid[ee].Kd = work_pid[ee].Kd + PID_K2 * (PID_PARAM(Kd, ee) * (temp_dState[ee] - temp_hotend[ee].celsius) - work_pid[ee].Kd);
+          const float max_power_over_i_gain = float(PID_MAX) / PID_PARAM(Ki, ee) - float(MIN_POWER);
+          temp_iState[ee] = constrain(temp_iState[ee] + pid_error, 0, max_power_over_i_gain);
+          work_pid[ee].Kp = PID_PARAM(Kp, ee) * pid_error;
+          work_pid[ee].Ki = PID_PARAM(Ki, ee) * temp_iState[ee];
+
+          pid_output = work_pid[ee].Kp + work_pid[ee].Ki + work_pid[ee].Kd + float(MIN_POWER);
+
+          #if ENABLED(PID_EXTRUSION_SCALING)
+            #if HOTENDS == 1
+              constexpr bool this_hotend = true;
+            #else
+              const bool this_hotend = (ee == active_extruder);
+            #endif
+            work_pid[ee].Kc = 0;
+            if (this_hotend) {
+              const long e_position = stepper.position(E_AXIS);
+              if (e_position > last_e_position) {
+                lpq[lpq_ptr] = e_position - last_e_position;
+                last_e_position = e_position;
+              }
+              else
+                lpq[lpq_ptr] = 0;
+
+              if (++lpq_ptr >= lpq_len) lpq_ptr = 0;
+              work_pid[ee].Kc = (lpq[lpq_ptr] * planner.steps_to_mm[E_AXIS]) * PID_PARAM(Kc, ee);
+              pid_output += work_pid[ee].Kc;
+            }
+          #endif // PID_EXTRUSION_SCALING
+          #if ENABLED(PID_FAN_SCALING)
+            if (thermalManager.fan_speed[active_extruder] > PID_FAN_SCALING_MIN_SPEED) {
+              work_pid[ee].Kf = PID_PARAM(Kf, ee) + (PID_FAN_SCALING_LIN_FACTOR) * thermalManager.fan_speed[active_extruder];
+              pid_output += work_pid[ee].Kf;
+            }
+            //pid_output -= work_pid[ee].Ki;
+            //pid_output += work_pid[ee].Ki * work_pid[ee].Kf
+          #endif // PID_FAN_SCALING
+          LIMIT(pid_output, 0, PID_MAX);
+        }
+        temp_dState[ee] = temp_hotend[ee].celsius;
+
+      #else // PID_OPENLOOP
+
+        const float pid_output = constrain(temp_hotend[ee].target, 0, PID_MAX);
+
+      #endif // PID_OPENLOOP
 
       #if ENABLED(PID_DEBUG)
-        if (ee == active_extruder)
-          hotend_pid[ee].debug(temp_hotend[ee].celsius, pid_output, F("E"), ee);
+        if (ee == active_extruder && PID_Debug_Flag) {
+          SERIAL_ECHO_START();
+          SERIAL_ECHOPAIR(STR_PID_DEBUG, ee, STR_PID_DEBUG_INPUT, temp_hotend[ee].celsius, STR_PID_DEBUG_OUTPUT, pid_output);
+          #if DISABLED(PID_OPENLOOP)
+            SERIAL_ECHOPAIR( STR_PID_DEBUG_PTERM, work_pid[ee].Kp, STR_PID_DEBUG_ITERM, work_pid[ee].Ki, STR_PID_DEBUG_DTERM, work_pid[ee].Kd
+              #if ENABLED(PID_EXTRUSION_SCALING)
+                , STR_PID_DEBUG_CTERM, work_pid[ee].Kc
+              #endif
+            );
+          #endif
+          SERIAL_EOL();
+        }
+      #endif // PID_DEBUG
+
+    #else // No PID enabled
+
+      #if HEATER_IDLE_HANDLER
+        const bool is_idling = hotend_idle[ee].timed_out;
+      #else
+        constexpr bool is_idling = false;
       #endif
+      const float pid_output = (!is_idling && temp_hotend[ee].celsius < temp_hotend[ee].target) ? BANG_MAX : 0;
+
+    #endif
 
     #elif ENABLED(MPCTEMP)
 
