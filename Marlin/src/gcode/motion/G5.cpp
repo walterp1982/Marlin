@@ -33,7 +33,7 @@
 
 /**
  * Parameters interpreted according to:
- * https://linuxcnc.org/docs/2.7/html/gcode/g-code.html#gcode:g5
+ * http://linuxcnc.org/docs/2.6/html/gcode/parser.html#sec:G5-Cubic-Spline
  * However I, J omission is not supported at this point; all
  * parameters can be omitted and default to zero.
  */
