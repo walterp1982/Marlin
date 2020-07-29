@@ -44,7 +44,8 @@
 //
 // Release PB4 (Y_ENABLE_PIN) from JTAG NRST role
 //
-#define DISABLE_DEBUG
+
+//#define DISABLE_DEBUG
 
 //
 // EEPROM
