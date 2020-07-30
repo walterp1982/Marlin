@@ -412,9 +412,8 @@ void GcodeSuite::G28() {
 
     if (z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
-      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Raise Z (before homing) by ", z_homing_height);
-      do_z_clearance(z_homing_height);
-      TERN_(BLTOUCH, bltouch.init());
+      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("Raise Z (before homing) by ", z_homing_height);
+      do_z_clearance(z_homing_height, TEST(axis_known_position, Z_AXIS), DISABLED(UNKNOWN_Z_NO_RAISE));
     }
 
     // Diagonal move first if both are homing
