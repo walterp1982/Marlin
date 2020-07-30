@@ -405,10 +405,10 @@ void GcodeSuite::G28() {
       constexpr bool doZ = false;
     #endif
 
-    TERN_(HOME_Z_FIRST, if (doZ) homeaxis(Z_AXIS));
-
-    const bool seenR = parser.seenval('R');
-    const float z_homing_height = seenR ? parser.value_linear_units() : Z_HOMING_HEIGHT;
+    const float z_homing_height =
+      ENABLED(UNKNOWN_Z_NO_RAISE) && TEST(axis_known_position, Z_AXIS)
+        ? 0
+        : (parser.seenval('R') ? parser.value_linear_units() : Z_HOMING_HEIGHT);
 
     if (z_homing_height && (seenR || NUM_AXIS_GANG(doX, || doY, || TERN0(Z_SAFE_HOMING, doZ), || doI, || doJ, || doK, || doU, || doV, || doW))) {
       // Raise Z before homing any other axes and z is not already high enough (never lower z)
