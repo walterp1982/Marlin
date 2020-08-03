@@ -32,30 +32,7 @@
 #define BOARD_WEBSITE_URL    "github.com/FLYmaker/FLYF407ZG"
 #define DEFAULT_MACHINE_NAME BOARD_INFO_NAME
 
-// Avoid conflict with fans and TIMER_TONE
-#define TEMP_TIMER  3
-#define STEP_TIMER  5
-
-//
-// EEPROM Emulation
-//
-#if NO_EEPROM_SELECTED
-  #define FLASH_EEPROM_EMULATION
-  //#define SRAM_EEPROM_EMULATION
-  //#define I2C_EEPROM
-#endif
-
-#if ENABLED(FLASH_EEPROM_EMULATION)
-  // Decrease delays and flash wear by spreading writes across
-  // the 128kB sector allocated for EEPROM emulation.
-  #define FLASH_EEPROM_LEVELING
-#elif ENABLED(I2C_EEPROM)
-  #define MARLIN_EEPROM_SIZE              0x2000  // 8K
-#endif
-
-#ifndef MARLIN_EEPROM_SIZE
-  #define MARLIN_EEPROM_SIZE              0x1000  // 4K
-#endif
+#define MARLIN_EEPROM_SIZE 0x1000                 // 4KB
 
 //
 // Servos
@@ -213,25 +190,15 @@
 #endif
 
 #if SD_CONNECTION_IS(ONBOARD)
-
   #define SDIO_SUPPORT                            // Use SDIO for onboard SD
 
-  #if DISABLED(SDIO_SUPPORT)
+  #ifndef SDIO_SUPPORT
     #define SOFTWARE_SPI                          // Use soft SPI for onboard SD
     #define SDSS                            PC11
     #define SD_SCK_PIN                      PC12
     #define SD_MISO_PIN                     PC8
     #define SD_MOSI_PIN                     PD2
   #endif
-
-#elif SD_CONNECTION_IS(LCD)
-
-  #define SD_SCK_PIN                 EXP2_02_PIN
-  #define SD_MISO_PIN                EXP2_01_PIN
-  #define SD_MOSI_PIN                EXP2_06_PIN
-  #define SDSS                       EXP2_04_PIN
-  #define SD_DETECT_PIN              EXP2_07_PIN
-
 #endif
 
 //
@@ -285,18 +252,21 @@
 //
 // LCD / Controller
 //
-#if IS_RRD_SC
-  #define BEEPER_PIN                 EXP1_01_PIN
-  #define LCD_PINS_RS                EXP1_04_PIN
-  #define LCD_PINS_ENABLE            EXP1_03_PIN
-  #define LCD_PINS_D4                EXP1_05_PIN
-  #define LCD_PINS_D5                EXP1_06_PIN
-  #define LCD_PINS_D6                EXP1_07_PIN
-  #define LCD_PINS_D7                EXP1_08_PIN
-  #define BTN_EN1                    EXP2_05_PIN
-  #define BTN_EN2                    EXP2_03_PIN
-  #define BTN_ENC                    EXP1_02_PIN
-#endif
+#define SCK_PIN                             PB13
+#define MISO_PIN                            PB14
+#define MOSI_PIN                            PB15
+#define SDSS                                PF11
+#define SD_DETECT_PIN                       PB2
+#define BEEPER_PIN                          PB10
+#define LCD_PINS_RS                         PE12
+#define LCD_PINS_ENABLE                     PE14
+#define LCD_PINS_D4                         PE10
+#define LCD_PINS_D5                         PE9
+#define LCD_PINS_D6                         PE8
+#define LCD_PINS_D7                         PE7
+#define BTN_EN1                             PC4
+#define BTN_EN2                             PC5
+#define BTN_ENC                             PE15
 
 //
 // Filament runout
