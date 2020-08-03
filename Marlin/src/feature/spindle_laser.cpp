@@ -96,20 +96,10 @@ void SpindleLaser::init() {
    *
    * @param ocr Power value
    */
-  void SpindleLaser::_set_ocr(const uint8_t ocr) {
-    #if ENABLED(HAL_CAN_SET_PWM_FREQ) && SPINDLE_LASER_FREQUENCY
-      hal.set_pwm_frequency(pin_t(SPINDLE_LASER_PWM_PIN), frequency);
-    #endif
-    hal.set_pwm_duty(pin_t(SPINDLE_LASER_PWM_PIN), ocr ^ SPINDLE_LASER_PWM_OFF);
-  }
-
   void SpindleLaser::set_ocr(const uint8_t ocr) {
-    #if PIN_EXISTS(SPINDLE_LASER_ENA)
-      WRITE(SPINDLE_LASER_ENA_PIN,  SPINDLE_LASER_ACTIVE_STATE); // Cutter ON
-    #endif
-    _set_ocr(ocr);
+    WRITE(SPINDLE_LASER_ENA_PIN, SPINDLE_LASER_ACTIVE_HIGH);        // turn spindle on
+    analogWrite(pin_t(SPINDLE_LASER_PWM_PIN), ocr ^ SPINDLE_LASER_PWM_OFF);
   }
-
   void SpindleLaser::ocr_off() {
     #if PIN_EXISTS(SPINDLE_LASER_ENA)
       WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE); // Cutter OFF
@@ -126,34 +116,27 @@ void SpindleLaser::init() {
  * @param opwr Power value. Range 0 to MAX.
  */
 void SpindleLaser::apply_power(const uint8_t opwr) {
-  if (enabled() || opwr == 0) {                                   // 0 check allows us to disable where no ENA pin exists
-    // Test and set the last power used to improve performance
-    if (opwr == last_power_applied) return;
-    last_power_applied = opwr;
-    // Handle PWM driven or just simple on/off
-    #if ENABLED(SPINDLE_LASER_USE_PWM)
-      if (CUTTER_UNIT_IS(RPM) && unitPower == 0)
-        ocr_off();
-      else if (ENABLED(CUTTER_POWER_RELATIVE) || enabled() || opwr == 0) {
-        set_ocr(opwr);
-        isReadyForUI = true;
-      }
-      else
-        ocr_off();
-    #elif ENABLED(SPINDLE_SERVO)
-      MOVE_SERVO(SPINDLE_SERVO_NR, power);
-    #else
-      WRITE(SPINDLE_LASER_ENA_PIN, enabled() ? SPINDLE_LASER_ACTIVE_STATE : !SPINDLE_LASER_ACTIVE_STATE);
-      isReadyForUI = true;
-    #endif
-  }
-  else {
-    #if PIN_EXISTS(SPINDLE_LASER_ENA)
-      WRITE(SPINDLE_LASER_ENA_PIN, !SPINDLE_LASER_ACTIVE_STATE);
-    #endif
-    isReadyForUI = false; // Only used for UI display updates.
-    TERN_(SPINDLE_LASER_USE_PWM, ocr_off());
-  }
+  static uint8_t last_power_applied = 0;
+  if (opwr == last_power_applied) return;
+  last_power_applied = opwr;
+  power = opwr;
+  #if ENABLED(SPINDLE_LASER_PWM)
+    if (cutter.unitPower == 0 && CUTTER_UNIT_IS(RPM)) {
+      ocr_off();
+      isReady = false;
+    }
+    else if (enabled() || ENABLED(CUTTER_POWER_RELATIVE)) {
+      set_ocr(power);
+      isReady = true;
+    }
+    else {
+      ocr_off();
+      isReady = false;
+    }
+  #else
+    WRITE(SPINDLE_LASER_ENA_PIN, enabled() == SPINDLE_LASER_ACTIVE_HIGH);
+    isReady = true;
+  #endif
 }
 
 #if ENABLED(SPINDLE_CHANGE_DIR)
