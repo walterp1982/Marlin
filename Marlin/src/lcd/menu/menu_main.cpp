@@ -286,12 +286,9 @@ void menu_main() {
       });
     #endif
 
-    #if ENABLED(GCODE_REPEAT_MARKERS)
-      if (repeat.is_active())
-        ACTION_ITEM(MSG_END_LOOPS, repeat.cancel);
-    #endif
+    #if !HAS_ENCODER_WHEEL && ENABLED(SDSUPPORT)
 
-    SUBMENU(MSG_TUNE, menu_tune);
+      // *** IF THIS SECTION IS CHANGED, REPRODUCE BELOW ***
 
     #if ENABLED(CANCEL_OBJECTS) && DISABLED(SLIM_LCD_MENUS)
       SUBMENU(MSG_CANCEL_OBJECT, []{ editable.int8 = -1; ui.goto_screen(menu_cancelobject); });
