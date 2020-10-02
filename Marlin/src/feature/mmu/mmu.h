@@ -21,5 +21,15 @@
  */
 #pragma once
 
+<<<<<<< HEAD:Marlin/src/feature/mmu/mmu.h
 void mmu_init();
 void select_multiplexed_stepper(const uint8_t e);
+=======
+/**
+ * HAL Watchdog for Teensy 4.0 (IMXRT1062DVL6A) / 4.1 (IMXRT1062DVJ6A)
+ */
+
+void watchdog_init();
+
+void HAL_watchdog_refresh();
+>>>>>>> 4d1357e318 (Adjust HAL platform defines, comments):Marlin/src/HAL/TEENSY40_41/watchdog.h

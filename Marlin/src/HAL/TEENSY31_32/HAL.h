@@ -39,6 +39,12 @@
 // Defines
 // ------------------------
 
+<<<<<<< HEAD
+=======
+//#undef MOTHERBOARD
+//#define MOTHERBOARD BOARD_TEENSY31_32
+
+>>>>>>> 4d1357e318 (Adjust HAL platform defines, comments)
 #define IS_32BIT_TEENSY 1
 #define IS_TEENSY_31_32 1
 #ifndef IS_TEENSY31

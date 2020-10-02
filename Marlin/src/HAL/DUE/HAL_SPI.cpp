@@ -31,6 +31,11 @@
 
 /**
  * HAL for Arduino Due and compatible (SAM3X8E)
+<<<<<<< HEAD
+=======
+ *
+ * For ARDUINO_ARCH_SAM
+>>>>>>> 4d1357e318 (Adjust HAL platform defines, comments)
  */
 
 #ifdef ARDUINO_ARCH_SAM

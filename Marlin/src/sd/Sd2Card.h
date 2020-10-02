@@ -86,11 +86,14 @@ uint8_t const SD_CARD_TYPE_SD1  = 1,        // Standard capacity V1 SD card
 #if EITHER(MEGA_SOFT_SPI, USE_SOFTWARE_SPI)
   #define SOFTWARE_SPI
 #endif
+<<<<<<< HEAD
 
 #if IS_TEENSY_35_36 || IS_TEENSY_40_41
   #include "NXP_SDHC.h"
   #define BUILTIN_SDCARD 254
 #endif
+=======
+>>>>>>> 4d1357e318 (Adjust HAL platform defines, comments)
 
 /**
  * \class Sd2Card
