@@ -33,7 +33,11 @@
 #if NO_EEPROM_SELECTED
   #define FLASH_EEPROM_EMULATION
   #ifndef MARLIN_EEPROM_SIZE
+<<<<<<< HEAD
     #define MARLIN_EEPROM_SIZE 0x800U             // 2K
+=======
+    #define MARLIN_EEPROM_SIZE 0x800U             // 2KB
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
   #endif
 #endif
 

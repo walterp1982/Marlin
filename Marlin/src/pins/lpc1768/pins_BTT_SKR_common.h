@@ -111,7 +111,11 @@
 //
 // LCD / Controller
 //
+<<<<<<< HEAD
 #if !defined(BEEPER_PIN) && HAS_WIRED_LCD && DISABLED(LCD_USE_I2C_BUZZER)
+=======
+#if HAS_WIRED_LCD && DISABLED(LCD_USE_I2C_BUZZER)
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
   #define BEEPER_PIN                       P1_30  // (37) not 5V tolerant
 #endif
 

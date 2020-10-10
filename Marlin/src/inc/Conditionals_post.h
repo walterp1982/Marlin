@@ -3561,6 +3561,7 @@
 /**
  * Buzzer/Speaker
  */
+<<<<<<< HEAD
 #if PIN_EXISTS(BEEPER)
   #define HAS_BEEPER 1
 #endif
@@ -3569,6 +3570,13 @@
 #endif
 #if EITHER(HAS_BEEPER, USE_MARLINUI_BUZZER)
   #define HAS_SOUND 1
+=======
+#if PIN_EXISTS(BEEPER) || ANY(LCD_USE_I2C_BUZZER, PCA9632_BUZZER)
+  #define HAS_BUZZER 1
+  #if PIN_EXISTS(BEEPER)
+    #define USE_BEEPER 1
+  #endif
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
 #endif
 
 #if ENABLED(LCD_USE_I2C_BUZZER)

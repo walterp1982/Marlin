@@ -401,6 +401,7 @@
   #define STR_I   ""
 #endif
 
+<<<<<<< HEAD
 #if HAS_J_AXIS
   #if AXIS5_NAME == 'B'
     #define STR_J "B"
@@ -501,6 +502,8 @@
   #define STR_W   ""
 #endif
 
+=======
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
 #if EITHER(HAS_MARLINUI_HD44780, IS_TFTGLCD_PANEL)
 
   // Custom characters defined in the first 8 characters of the LCD

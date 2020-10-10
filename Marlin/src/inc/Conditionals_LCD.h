@@ -205,7 +205,11 @@
     #define LCD_PROGRESS_BAR
   #endif
   #if ENABLED(TFTGLCD_PANEL_I2C)
+<<<<<<< HEAD
     #define LCD_I2C_ADDRESS           0x33  // Must be 0x33 for STM32 main boards and equal to panel's I2C slave address
+=======
+    #define LCD_I2C_ADDRESS           0x27  // Must be equal to panel's I2C slave addres
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
   #endif
   #define LCD_USE_I2C_BUZZER                // Enable buzzer on LCD, used for both I2C and SPI buses (LiquidTWI2 not required)
   #define STD_ENCODER_PULSES_PER_STEP 2

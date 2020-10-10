@@ -245,6 +245,7 @@
   #define TMC_BAUD_RATE                    19200
 #endif
 
+<<<<<<< HEAD
 /**       ------                ------
  *  1.30 | 1  2 | 0.28    0.17 | 1  2 | 0.15
  *  1.18 | 3  4 | 1.19    3.26 | 3  4 | 0.16
@@ -253,6 +254,24 @@
  *   GND | 9 10 | 5V       GND | 9 10 | --
  *        ------                ------
  *         EXP1                  EXP2
+=======
+//
+// SD Connection
+//
+#if SD_CONNECTION_IS(LCD)
+  #define SS_PIN                           P0_16
+#endif
+
+/**
+ *               _____                                             _____
+ *           NC | · · | GND                                    5V | · · | GND
+ *        RESET | · · | 1.31 (SD_DETECT)            (LCD_D7) 1.23 | · · | 1.22 (LCD_D6)
+ *  (MOSI) 0.18 | · · | 3.25 (BTN_EN2)              (LCD_D5) 1.21 | · · | 1.20 (LCD_D4)
+ * (SD_SS) 0.16 | · · | 3.26 (BTN_EN1)              (LCD_RS) 1.19 | · · | 1.18 (LCD_EN)
+ *   (SCK) 0.15 | · · | 0.17 (MISO)                (BTN_ENC) 0.28 | · · | 1.30 (BEEPER)
+ *               -----                                             -----
+ *               EXP2                                              EXP1
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
  */
 #define EXP1_01_PIN                        P1_30
 #define EXP1_02_PIN                        P0_28

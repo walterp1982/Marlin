@@ -560,10 +560,13 @@ void menu_backlash();
         SUBMENU(MSG_PROBE_WIZARD, goto_probe_offset_wizard);
       #endif
 
+<<<<<<< HEAD
       #if ENABLED(X_AXIS_TWIST_COMPENSATION)
         SUBMENU(MSG_XATC, xatc_wizard_continue);
       #endif
 
+=======
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
       END_MENU();
     }
   #endif

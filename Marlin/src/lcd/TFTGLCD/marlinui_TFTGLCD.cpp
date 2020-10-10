@@ -32,7 +32,11 @@
  * and supports color output.
  */
 
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
 #if NONE(__AVR__, TARGET_LPC1768, STM32F1, STM32F4xx)
+=======
+#if NONE(__AVR__, TARGET_LPC1768, __STM32F1__, STM32F4xx)
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
   #warning "Selected platform not yet tested. Please contribute your good pin mappings."
 #endif
 
@@ -141,7 +145,11 @@ static uint8_t PanelDetected = 0;
 #if ANY(__AVR__, TARGET_LPC1768, __STM32F1__, ARDUINO_ARCH_SAM, __SAMD51__, __MK20DX256__, __MK64FX512__)
   #define SPI_SEND_ONE(V) SPI.transfer(V);
   #define SPI_SEND_TWO(V) SPI.transfer16(V);
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
 #elif EITHER(STM32F4xx, STM32F1xx)
+=======
+#elif defined(STM32F4xx)
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
   #define SPI_SEND_ONE(V) SPI.transfer(V, SPI_CONTINUE);
   #define SPI_SEND_TWO(V) SPI.transfer16(V, SPI_CONTINUE);
 #elif defined(ARDUINO_ARCH_ESP32)
@@ -151,7 +159,11 @@ static uint8_t PanelDetected = 0;
 
 #if ANY(__AVR__, ARDUINO_ARCH_SAM, __SAMD51__, __MK20DX256__, __MK64FX512__)
   #define SPI_SEND_SOME(V,L,Z)  SPI.transfer(&V[Z], L);
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
 #elif EITHER(STM32F4xx, STM32F1xx)
+=======
+#elif defined(STM32F4xx)
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
   #define SPI_SEND_SOME(V,L,Z)  SPI.transfer(&V[Z], L, SPI_CONTINUE);
 #elif ANY(TARGET_LPC1768, __STM32F1__, ARDUINO_ARCH_ESP32)
   #define SPI_SEND_SOME(V,L,Z)  do{ for (uint16_t i = 0; i < L; i++) SPI_SEND_ONE(V[(Z)+i]); }while(0)
@@ -265,7 +277,11 @@ void TFTGLCD::setContrast(uint16_t contrast) {
 extern volatile int8_t encoderDiff;
 
 // Read buttons and encoder states
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
 uint8_t MarlinUI::read_slow_buttons() {
+=======
+uint8_t MarlinUI::read_slow_buttons(void) {
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
   if (!PanelDetected)    return 0;
   #if ENABLED(TFTGLCD_PANEL_SPI)
     uint8_t b = 0;
@@ -325,7 +341,11 @@ void MarlinUI::init_lcd() {
   t = 0;
   #if ENABLED(TFTGLCD_PANEL_SPI)
     // SPI speed must be less 10MHz
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
     SET_OUTPUT(TFTGLCD_CS);
+=======
+    _SET_OUTPUT(TFTGLCD_CS);
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
     WRITE(TFTGLCD_CS, HIGH);
     spiInit(TERN(__STM32F1__, SPI_QUARTER_SPEED, SPI_FULL_SPEED));
     WRITE(TFTGLCD_CS, LOW);
@@ -342,7 +362,11 @@ void MarlinUI::init_lcd() {
     Wire.endTransmission(); // send buffer
     #ifdef __AVR__
       Wire.requestFrom((uint8_t)LCD_I2C_ADDRESS, 1, 0, 0, 1);
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
     #elif ANY(STM32F1, STM32F4xx, TARGET_LPC1768)
+=======
+    #elif ANY(__STM32F1__, STM32F4xx, TARGET_LPC1768)
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
       Wire.requestFrom(LCD_I2C_ADDRESS, 1);
     #endif
     t = (uint8_t)Wire.read();
@@ -626,10 +650,17 @@ FORCE_INLINE void _draw_axis_value(const AxisEnum axis, const char *value, const
       lcd.write('%'); lcd.write(percent);
     }
     else { // For progress bar test
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
       lcd_moveto(LCD_WIDTH / 2 - 2, MIDDLE_Y);
       lcd.print(i16tostr3rj(percent)); lcd.write('%');
       lcd.print_line();
       lcd_moveto(0, MIDDLE_Y + 1);
+=======
+      lcd.setCursor(LCD_WIDTH / 2 - 2, MIDDLE_Y);
+      lcd.print(i16tostr3rj(percent));  lcd.write('%');
+      lcd.print_line();
+      lcd.setCursor(0, MIDDLE_Y + 1);
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
       lcd.write('%'); lcd.write(percent);
       lcd.print_line();
     }
@@ -983,17 +1014,29 @@ void MarlinUI::draw_status_screen() {
 
   // Low-level draw_edit_screen can be used to draw an edit screen from anyplace
   // This line moves to the last line of the screen for UBL plot screen on the panel side
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
   void MenuEditItemBase::draw_edit_screen(FSTR_P const fstr, const char * const value/*=nullptr*/) {
     if (!PanelDetected) return;
     ui.encoder_direction_normal();
     const uint8_t y = TERN0(AUTO_BED_LEVELING_UBL, ui.external_control) ? LCD_HEIGHT - 1 : MIDDLE_Y;
     lcd_moveto(0, y);
+=======
+  void MenuEditItemBase::draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
+    if (!PanelDetected) return;
+    ui.encoder_direction_normal();
+    lcd.setCursor(0, MIDDLE_Y);
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
     lcd.write(COLOR_EDIT);
     lcd_put_u8str(fstr);
     if (value) {
       lcd.write(':');
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
       lcd_moveto((LCD_WIDTH - 1) - (utf8_strlen(value) + 1), y); // Right-justified, padded by spaces
       lcd.write(' ');                                               // Overwrite char if value gets shorter
+=======
+      lcd.setCursor((LCD_WIDTH - 1) - (utf8_strlen(value) + 1), MIDDLE_Y);  // Right-justified, padded by spaces
+      lcd.write(' ');     // Overwrite char if value gets shorter
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
       lcd.print(value);
       lcd.write(' ');
       lcd.print_line();
@@ -1004,6 +1047,7 @@ void MarlinUI::draw_status_screen() {
   void MenuItem_confirm::draw_select_screen(FSTR_P const yes, FSTR_P const no, const bool yesno, FSTR_P const pref, const char * const string, FSTR_P const suff) {
     if (!PanelDetected) return;
     ui.draw_select_screen_prompt(pref, string, suff);
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
     lcd.write(COLOR_EDIT);
     if (no) {
       lcd_moveto(0, MIDDLE_Y);
@@ -1013,6 +1057,13 @@ void MarlinUI::draw_status_screen() {
       lcd_moveto(LCD_WIDTH - utf8_strlen(yes) - 3, MIDDLE_Y);
       lcd.write(yesno ? '[' : ' '); lcd_put_u8str(yes); lcd.write(yesno ? ']' : ' ');
     }
+=======
+    lcd.setCursor(0, MIDDLE_Y);
+    lcd.write(COLOR_EDIT);
+    lcd.write(yesno ? ' ' : '['); lcd_put_u8str_P(no); lcd.write(yesno ? ' ' : ']');
+    lcd.setCursor(LCD_WIDTH - utf8_strlen_P(yes) - 3, MIDDLE_Y);
+    lcd.write(yesno ? '[' : ' '); lcd_put_u8str_P(yes); lcd.write(yesno ? ']' : ' ');
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
     lcd.print_line();
   }
 

@@ -90,4 +90,7 @@
 #define LED_PIN                             PC13
 #define SDSS                                PA3
 #define TFTGLCD_CS                          PA4
+<<<<<<< HEAD
 #define SD_DETECT_PIN                       PC14
+=======
+>>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614))
