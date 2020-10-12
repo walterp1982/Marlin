@@ -485,7 +485,11 @@
 #elif defined(POWER_SUPPLY)
   #error "POWER_SUPPLY is now obsolete. Please remove it."
 #elif defined(MKS_ROBIN_TFT)
+<<<<<<< HEAD
   #error "MKS_ROBIN_TFT is now FSMC_GRAPHICAL_TFT."
+=======
+  #error "MKS_ROBIN_TFT is now FSMC_GRAPHICAL_TFT. Please update your configuration."
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 #elif defined(SDPOWER)
   #error "SDPOWER is now SDPOWER_PIN."
 #elif defined(STRING_SPLASH_LINE1) || defined(STRING_SPLASH_LINE2)
@@ -559,6 +563,7 @@
 #elif defined(ANYCUBIC_TFT_MODEL)
   #error "ANYCUBIC_TFT_MODEL is now ANYCUBIC_LCD_I3MEGA."
 #elif defined(EVENT_GCODE_SD_STOP)
+<<<<<<< HEAD
   #error "EVENT_GCODE_SD_STOP is now EVENT_GCODE_SD_ABORT."
 #elif defined(GRAPHICAL_TFT_ROTATE_180)
   #error "GRAPHICAL_TFT_ROTATE_180 is now TFT_ROTATION set to TFT_ROTATE_180."
@@ -568,6 +573,11 @@
   #error "POWER_LOSS_PULL is now specifically POWER_LOSS_PULL(UP|DOWN)."
 #elif defined(SHORT_MANUAL_Z_MOVE)
   #error "SHORT_MANUAL_Z_MOVE is now FINE_MANUAL_MOVE, applying to Z on most printers."
+=======
+  #error "EVENT_GCODE_SD_STOP is now EVENT_GCODE_SD_ABORT. Please update your Configuration.h."
+#elif defined(GRAPHICAL_TFT_ROTATE_180)
+  #error "GRAPHICAL_TFT_ROTATE_180 is now TFT_ROTATION set to TFT_ROTATE_180. Please update your Configuration.h."
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 #elif defined(FIL_RUNOUT_INVERTING)
   #if FIL_RUNOUT_INVERTING
     #error "FIL_RUNOUT_INVERTING true is now FIL_RUNOUT_STATE HIGH."

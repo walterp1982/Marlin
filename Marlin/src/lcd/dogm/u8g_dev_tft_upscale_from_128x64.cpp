@@ -140,7 +140,11 @@ static void setWindow(u8g_t *u8g, u8g_dev_t *dev, uint16_t Xmin, uint16_t Ymin, 
   tftio.set_window(Xmin, Ymin, Xmax, Ymax);
 }
 
+<<<<<<< HEAD
 #if HAS_TOUCH_BUTTONS
+=======
+#if HAS_TOUCH_XPT2046
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
   static const uint8_t buttonD[] = {
     B01111111,B11111111,B11111111,B11111110,
@@ -373,7 +377,13 @@ uint8_t u8g_dev_tft_320x240_upscale_from_128x64_fn(u8g_t *u8g, u8g_dev_t *dev, u
 
   switch (msg) {
     case U8G_DEV_MSG_INIT:
+<<<<<<< HEAD
       dev->com_fn(u8g, U8G_COM_MSG_INIT, U8G_SPI_CLK_CYCLE_NONE, nullptr);
+=======
+      dev->com_fn(u8g, U8G_COM_MSG_INIT, U8G_SPI_CLK_CYCLE_NONE, NULL);
+      tftio.Init();
+      tftio.InitTFT();
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
       if (preinit) {
         preinit = false;
@@ -458,6 +468,11 @@ uint8_t u8g_com_hal_tft_fn(u8g_t *u8g, uint8_t msg, uint8_t arg_val, void *arg_p
   switch (msg) {
     case U8G_COM_MSG_STOP: break;
     case U8G_COM_MSG_INIT:
+<<<<<<< HEAD
+=======
+      u8g_SetPIOutput(u8g, U8G_PI_RESET);
+      u8g_Delay(50);
+>>>>>>> faae900747 (TFT Refactoring (#19192))
       isCommand = 0;
       break;
 

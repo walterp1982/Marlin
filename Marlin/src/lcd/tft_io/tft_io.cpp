@@ -20,6 +20,7 @@
  *
  */
 
+<<<<<<< HEAD
 #include "../../inc/MarlinConfigPre.h"
 
 #if HAS_SPI_TFT || HAS_FSMC_TFT || HAS_LTDC_TFT
@@ -52,6 +53,20 @@
 #if HAS_LCD_BRIGHTNESS
   #include "../marlinui.h"
 #endif
+=======
+#include "tft_io.h"
+
+#if HAS_SPI_TFT || HAS_FSMC_TFT
+
+#include "st7735.h"
+#include "st7789v.h"
+#include "st7796s.h"
+#include "r65105.h"
+#include "ili9328.h"
+#include "ili9341.h"
+#include "ili9488.h"
+#include "ssd1963.h"
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
 #define DEBUG_OUT ENABLED(DEBUG_GRAPHICAL_TFT)
 #include "../../core/debug_out.h"
@@ -69,6 +84,7 @@ if (lcd_id != 0xFFFFFFFF) return;
   #if PIN_EXISTS(TFT_RESET)
     OUT_WRITE(TFT_RESET_PIN, HIGH);
     delay(10);
+<<<<<<< HEAD
     WRITE(TFT_RESET_PIN, LOW);
     delay(10);
     WRITE(TFT_RESET_PIN, HIGH);
@@ -79,6 +95,15 @@ if (lcd_id != 0xFFFFFFFF) return;
     #if HAS_LCD_BRIGHTNESS && DISABLED(DELAYED_BACKLIGHT_INIT)
       ui._set_brightness();
     #endif
+=======
+    OUT_WRITE(TFT_RESET_PIN, LOW);
+    delay(10);
+    OUT_WRITE(TFT_RESET_PIN, HIGH);
+  #endif
+
+  #if PIN_EXISTS(TFT_BACKLIGHT)
+    OUT_WRITE(TFT_BACKLIGHT_PIN, DISABLED(DELAYED_BACKLIGHT_INIT));
+>>>>>>> faae900747 (TFT Refactoring (#19192))
   #endif
 
   // io.Init();
@@ -104,13 +129,23 @@ if (lcd_id != 0xFFFFFFFF) return;
     write_esc_sequence(ili9341_init);
   #elif TFT_DRIVER == ILI9488
     write_esc_sequence(ili9488_init);
+<<<<<<< HEAD
+=======
+  #elif TFT_DRIVER == LERDGE_ST7796
+    lcd_id = ST7796;
+    write_esc_sequence(lerdge_st7796s_init);
+
+>>>>>>> faae900747 (TFT Refactoring (#19192))
   #elif TFT_DRIVER == AUTO // autodetect
 
     lcd_id = io.GetID() & 0xFFFF;
 
     switch (lcd_id) {
+<<<<<<< HEAD
       case LTDC_RGB:
         break;
+=======
+>>>>>>> faae900747 (TFT Refactoring (#19192))
       case ST7796:    // ST7796S    480x320
         DEBUG_ECHO_MSG(" ST7796S");
         write_esc_sequence(st7796s_init);
@@ -148,11 +183,19 @@ if (lcd_id != 0xFFFFFFFF) return;
         lcd_id = 0;
     }
   #else
+<<<<<<< HEAD
     #error "Unsupported TFT driver"
   #endif
 
   #if PIN_EXISTS(TFT_BACKLIGHT) && ENABLED(DELAYED_BACKLIGHT_INIT)
     TERN(HAS_LCD_BRIGHTNESS, ui._set_brightness(), WRITE(TFT_BACKLIGHT_PIN, HIGH));
+=======
+    #error Unsupported TFT driver
+  #endif
+
+  #if PIN_EXISTS(TFT_BACKLIGHT) && ENABLED(DELAYED_BACKLIGHT_INIT)
+    OUT_WRITE(TFT_BACKLIGHT_PIN, HIGH);
+>>>>>>> faae900747 (TFT Refactoring (#19192))
   #endif
 }
 
@@ -165,6 +208,7 @@ void TFT_IO::set_window(uint16_t Xmin, uint16_t Ymin, uint16_t Xmax, uint16_t Ym
   #endif
 
   switch (lcd_id) {
+<<<<<<< HEAD
     case LTDC_RGB:
       io.WriteReg(0x01);
       io.WriteData(Xmin);
@@ -176,6 +220,8 @@ void TFT_IO::set_window(uint16_t Xmin, uint16_t Ymin, uint16_t Xmax, uint16_t Ym
       io.WriteData(Ymax);
       io.WriteReg(0x00);
       break;
+=======
+>>>>>>> faae900747 (TFT Refactoring (#19192))
     case ST7735:    // ST7735     160x128
     case ST7789:    // ST7789V    320x240
     case ST7796:    // ST7796     480x320
@@ -255,4 +301,8 @@ void TFT_IO::write_esc_sequence(const uint16_t *Sequence) {
   io.DataTransferEnd();
 }
 
+<<<<<<< HEAD
 #endif // HAS_SPI_TFT || HAS_FSMC_TFT || HAS_LTDC_TFT
+=======
+#endif // HAS_SPI_TFT || HAS_FSMC_TFT
+>>>>>>> faae900747 (TFT Refactoring (#19192))

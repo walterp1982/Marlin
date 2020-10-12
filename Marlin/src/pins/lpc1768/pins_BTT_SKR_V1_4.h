@@ -424,12 +424,57 @@
     #define TOUCH_BUTTONS_HW_SPI
     #define TOUCH_BUTTONS_HW_SPI_DEVICE        1
 
+<<<<<<< HEAD
     // SPI 1
     #define SD_SCK_PIN               EXP2_02_PIN
     #define SD_MISO_PIN              EXP2_01_PIN
     #define SD_MOSI_PIN              EXP2_06_PIN
 
     #define TFT_BUFFER_SIZE                 2400
+=======
+    #ifndef GRAPHICAL_TFT_UPSCALE
+      #define GRAPHICAL_TFT_UPSCALE            3
+    #endif
+    // SPI 1
+    #define SCK_PIN                        P0_15
+    #define MISO_PIN                       P0_17
+    #define MOSI_PIN                       P0_18
+
+    // Disable any LCD related PINs config
+    #define LCD_PINS_ENABLE                -1
+    #define LCD_PINS_RS                    -1
+
+    // XPT2046 Touch Screen calibration
+    #if ENABLED(TFT_CLASSIC_UI)
+      #ifndef XPT2046_X_CALIBRATION
+        #define XPT2046_X_CALIBRATION     -11245
+      #endif
+      #ifndef XPT2046_Y_CALIBRATION
+        #define XPT2046_Y_CALIBRATION       8629
+      #endif
+      #ifndef XPT2046_X_OFFSET
+        #define XPT2046_X_OFFSET             685
+      #endif
+      #ifndef XPT2046_Y_OFFSET
+        #define XPT2046_Y_OFFSET            -285
+      #endif
+    #elif ENABLED(TFT_480x320_SPI)
+      #ifndef XPT2046_X_CALIBRATION
+        #define XPT2046_X_CALIBRATION     -17232
+      #endif
+      #ifndef XPT2046_Y_CALIBRATION
+        #define XPT2046_Y_CALIBRATION      11196
+      #endif
+      #ifndef XPT2046_X_OFFSET
+        #define XPT2046_X_OFFSET            1047
+      #endif
+      #ifndef XPT2046_Y_OFFSET
+        #define XPT2046_Y_OFFSET            -358
+      #endif
+
+      #define TFT_BUFFER_SIZE               2400
+    #endif
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
   #elif IS_TFTGLCD_PANEL
 

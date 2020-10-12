@@ -21,8 +21,16 @@
  */
 #pragma once
 
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/SPI_TFT.h
 #include "../../tft_io/tft_io.h"
 #include <stdint.h>
+=======
+#include "../../inc/MarlinConfigPre.h"
+
+#if HAS_TFT_LVGL_UI
+
+#include "../../../tft_io/tft_io.h"
+>>>>>>> faae900747 (TFT Refactoring (#19192)):Marlin/src/lcd/extui/lib/mks_ui/SPI_TFT.h
 
 class TFT {
 public:
@@ -36,3 +44,5 @@ public:
 };
 
 extern TFT SPI_TFT;
+
+#endif // HAS_TFT_LVGL_UI

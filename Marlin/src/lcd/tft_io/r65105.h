@@ -51,11 +51,17 @@
   #define R61505_DRVCTRL_DATA     0x2700
 #endif
 
+<<<<<<< HEAD
 /*
 #define R61505_ETMOD_ORIENTATION  IF_0((TFT_ORIENTATION) & TFT_EXCHANGE_XY, R61505_ETMOD_AM)  | \
                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_X,    R61505_ETMOD_ID0) | \
                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_Y,    R61505_ETMOD_ID1)
 */
+=======
+// #define R61505_ETMOD_ORIENTATION  IF_0((TFT_ORIENTATION) & TFT_EXCHANGE_XY, R61505_ETMOD_AM) | \
+//                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_X,    R61505_ETMOD_ID0) | \
+//                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_Y,    R61505_ETMOD_ID1)
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
 #define R61505_ETMOD_ORIENTATION (R61505_ETMOD_AM | R61505_ETMOD_ID0 | R61505_ETMOD_ID1)
 

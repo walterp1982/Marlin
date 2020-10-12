@@ -45,7 +45,10 @@
 #endif
 
 //#define MCU_STM32F103ZE // not yet required
+<<<<<<< HEAD
 
+=======
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 // Enable EEPROM Emulation for this board, so that we don't overwrite factory data
 #if NO_EEPROM_SELECTED
   //#define I2C_EEPROM                            // AT24C64

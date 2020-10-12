@@ -30,9 +30,15 @@
 
 #include <libmaple/dma.h>
 
+<<<<<<< HEAD
 #define DATASIZE_8BIT  DMA_SIZE_8BITS
 #define DATASIZE_16BIT DMA_SIZE_16BITS
 #define TFT_IO_DRIVER  TFT_FSMC
+=======
+#define DATASIZE_8BIT    DMA_SIZE_8BITS
+#define DATASIZE_16BIT   DMA_SIZE_16BITS
+#define TFT_IO_DRIVER TFT_FSMC
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
 typedef struct {
   __IO uint16_t REG;

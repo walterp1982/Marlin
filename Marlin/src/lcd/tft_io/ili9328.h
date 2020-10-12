@@ -49,11 +49,17 @@
   #define ILI9328_GATE_SCANCTL1_DATA 0x2700
 #endif
 
+<<<<<<< HEAD
 /*
 #define ILI9328_ETMOD_ORIENTATION IF_0((TFT_ORIENTATION) & TFT_EXCHANGE_XY, ILI9328_ETMOD_AM)  | \
                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_X,    ILI9328_ETMOD_ID1) | \
                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_Y,    ILI9328_ETMOD_ID0)
 */
+=======
+// #define ILI9328_ETMOD_ORIENTATION IF_0((TFT_ORIENTATION) & TFT_EXCHANGE_XY, ILI9328_ETMOD_AM) | \
+//                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_X,    ILI9328_ETMOD_ID1) | \
+//                                   IF_0((TFT_ORIENTATION) & TFT_INVERT_Y,    ILI9328_ETMOD_ID0)
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
 #define ILI9328_ETMOD_ORIENTATION (ILI9328_ETMOD_AM | ILI9328_ETMOD_ID1 | ILI9328_ETMOD_ID0)
 

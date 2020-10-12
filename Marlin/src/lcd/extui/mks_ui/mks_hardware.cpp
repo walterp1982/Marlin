@@ -707,7 +707,11 @@ void disp_string(uint16_t x, uint16_t y, FSTR_P const fstr, uint16_t charColor, 
 
 void disp_assets_update() {
   SPI_TFT.LCD_clear(0x0000);
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/mks_hardware.cpp
   disp_string(100, 140, F("Assets Updating..."), 0xFFFF, 0x0000);
+=======
+  disp_string(100, 140, "Assets Updating...", 0xFFFF, 0x0000);
+>>>>>>> faae900747 (TFT Refactoring (#19192)):Marlin/src/lcd/extui/lib/mks_ui/mks_hardware_test.cpp
 }
 
 void disp_assets_update_progress(FSTR_P const fmsg) {

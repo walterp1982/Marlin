@@ -78,6 +78,7 @@ uint8_t TouchButtons::read_buttons() {
       #endif
       if (!is_touched) return 0;
 
+<<<<<<< HEAD
       #if ENABLED(TOUCH_SCREEN_CALIBRATION)
         const calibrationState state = touch_calibration.get_calibration_state();
         if (WITHIN(state, CALIBRATION_TOP_LEFT, CALIBRATION_BOTTOM_RIGHT)) {
@@ -93,6 +94,14 @@ uint8_t TouchButtons::read_buttons() {
     #elif ENABLED(TFT_TOUCH_DEVICE_GT911)
       bool is_touched = (TOUCH_ORIENTATION == TOUCH_PORTRAIT ? touchIO.getPoint(&y, &x) : touchIO.getPoint(&x, &y));
       if (!is_touched) return 0;
+=======
+    x = uint16_t((uint32_t(x) * XPT2046_X_CALIBRATION) >> 16) + XPT2046_X_OFFSET;
+    y = uint16_t((uint32_t(y) * XPT2046_Y_CALIBRATION) >> 16) + XPT2046_Y_OFFSET;
+
+    #if (TFT_ROTATION & TFT_ROTATE_180)
+      x = TOUCH_SENSOR_WIDTH - x;
+      y = TOUCH_SENSOR_HEIGHT - y;
+>>>>>>> faae900747 (TFT Refactoring (#19192))
     #endif
 
     // Touch within the button area simulates an encoder button

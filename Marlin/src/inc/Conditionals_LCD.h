@@ -332,6 +332,33 @@
   #define TFT_LVGL_UI
 #endif
 
+// Compatibility
+#if ENABLED(FSMC_GRAPHICAL_TFT)
+  #define TFT_CLASSIC_UI
+  #define TFT_INTERFACE_FSMC
+  #define TFT_GENERIC
+#elif ENABLED(SPI_GRAPHICAL_TFT)
+  #define TFT_CLASSIC_UI
+  #define TFT_INTERFACE_SPI
+  #define TFT_GENERIC
+#elif EITHER(TFT_320x240, TFT_480x320)
+  #define TFT_COLOR_UI
+  #define TFT_INTERFACE_FSMC
+  #define TFT_GENERIC
+#elif EITHER(TFT_320x240_SPI, TFT_480x320_SPI)
+  #define TFT_COLOR_UI
+  #define TFT_INTERFACE_SPI
+  #define TFT_GENERIC
+#elif ENABLED(TFT_LVGL_UI_FSMC)
+  #define TFT_LVGL_UI
+  #define TFT_INTERFACE_FSMC
+  #define TFT_GENERIC
+#elif ENABLED(TFT_LVGL_UI_SPI)
+  #define TFT_LVGL_UI
+  #define TFT_INTERFACE_SPI
+  #define TFT_GENERIC
+#endif
+
 // FSMC/SPI TFT Panels (LVGL)
 #if ENABLED(TFT_LVGL_UI)
   #define HAS_TFT_LVGL_UI 1
@@ -347,14 +374,22 @@
   #define DOGLCD
   #define IS_ULTIPANEL 1
   #define DELAYED_BACKLIGHT_INIT
+<<<<<<< HEAD
 #elif HAS_TFT_LVGL_UI
+=======
+#elif ENABLED(TFT_LVGL_UI)
+>>>>>>> faae900747 (TFT Refactoring (#19192))
   #define DELAYED_BACKLIGHT_INIT
 #endif
 
 // Color UI
 #if ENABLED(TFT_COLOR_UI)
   #define HAS_GRAPHICAL_TFT 1
+<<<<<<< HEAD
   #define IS_ULTIPANEL 1
+=======
+  #define IS_ULTIPANEL
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 #endif
 
 /**
@@ -1452,8 +1487,133 @@
 #endif
 
 /**
+<<<<<<< HEAD
  * To check if we need the folder src/features/leds
  */
 #if ANY(TEMP_STAT_LEDS, HAS_COLOR_LEDS, HAS_CASE_LIGHT, PRINTER_EVENT_LEDS, LED_BACKLIGHT_TIMEOUT, PCA9632_BUZZER, LED_CONTROL_MENU)
   #define HAS_LED_FEATURE 1
+=======
+ * TFT Displays
+ *
+ * Configure parameters for TFT displays:
+ *  - TFT_DEFAULT_ORIENTATION
+ *  - TFT_DRIVER
+ *  - TFT_WIDTH
+ *  - TFT_HEIGHT
+ *  - TFT_INTERFACE_(SPI|FSMC)
+ *  - TFT_COLOR
+ *  - GRAPHICAL_TFT_UPSCALE
+ */
+#if ENABLED(MKS_TS35_V2_0)
+  // Most common: ST7796
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY)
+  #define TFT_WIDTH  480
+  #define TFT_HEIGHT 320
+  #define TFT_INTERFACE_SPI
+  #define GRAPHICAL_TFT_UPSCALE 3
+#elif ENABLED(MKS_ROBIN_TFT24)
+  // Most common: ST7789
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_Y)
+  #define TFT_WIDTH  320
+  #define TFT_HEIGHT 240
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 2
+#elif ENABLED(MKS_ROBIN_TFT28)
+  // Most common: ST7789
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_Y)
+  #define TFT_WIDTH  320
+  #define TFT_HEIGHT 240
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 2
+#elif ENABLED(MKS_ROBIN_TFT32)
+  // Most common: ST7789
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_Y)
+  #define TFT_WIDTH  320
+  #define TFT_HEIGHT 240
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 2
+#elif ENABLED(MKS_ROBIN_TFT35)
+  // Most common: ILI9488
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_X | TFT_INVERT_Y)
+  #define TFT_WIDTH  480
+  #define TFT_HEIGHT 320
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 3
+#elif ENABLED(MKS_ROBIN_TFT43)
+  #define TFT_DEFAULT_ORIENTATION 0
+  #define TFT_DRIVER SSD1963
+  #define TFT_WIDTH  480
+  #define TFT_HEIGHT 272
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 2
+#elif ENABLED(MKS_ROBIN_TFT_V1_1R)
+  // ILI9328 or R61505
+  #define TFT_DEFAULT_ORIENTATION (TFT_INVERT_X | TFT_INVERT_Y | TFT_EXCHANGE_XY)
+  #define TFT_WIDTH  320
+  #define TFT_HEIGHT 240
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 2
+#elif EITHER(TFT_TRONXY_X5SA, ANYCUBIC_TFT35)
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_X | TFT_INVERT_Y)
+  #define TFT_DRIVER ILI9488
+  #define TFT_WIDTH  480
+  #define TFT_HEIGHT 320
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 3
+#elif ENABLED(LONGER_LK_TFT28)
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_X | TFT_INVERT_Y)
+  #define TFT_WIDTH  320
+  #define TFT_HEIGHT 240
+  #define TFT_INTERFACE_FSMC
+  #define GRAPHICAL_TFT_UPSCALE 2
+#elif ENABLED(TFT_GENERIC)
+  #define TFT_DEFAULT_ORIENTATION (TFT_EXCHANGE_XY | TFT_INVERT_X | TFT_INVERT_Y)
+#endif
+
+// FSMC/SPI TFT Panels using standard HAL/tft/tft_(fsmc|spi).h
+#if ENABLED(TFT_INTERFACE_FSMC)
+  #define HAS_FSMC_TFT 1
+  #if ENABLED(TFT_CLASSIC_UI)
+    #define FSMC_GRAPHICAL_TFT
+  #elif ENABLED(TFT_LVGL_UI)
+    #define TFT_LVGL_UI_FSMC
+  #endif
+#elif ENABLED(TFT_INTERFACE_SPI)
+  #define HAS_SPI_TFT 1
+  #if ENABLED(TFT_CLASSIC_UI)
+    #define SPI_GRAPHICAL_TFT
+  #elif ENABLED(TFT_LVGL_UI)
+    #define TFT_LVGL_UI_SPI
+  #endif
+#endif
+
+#if ENABLED(TFT_COLOR_UI) && TFT_HEIGHT == 240
+  #if ENABLED(TFT_INTERFACE_SPI)
+    #define TFT_320x240_SPI
+  #elif ENABLED(TFT_INTERFACE_FSMC)
+    #define TFT_320x240
+  #endif
+#elif ENABLED(TFT_COLOR_UI) && TFT_HEIGHT == 320
+  #if ENABLED(TFT_INTERFACE_SPI)
+    #define TFT_480x320_SPI
+  #elif ENABLED(TFT_INTERFACE_FSMC)
+    #define TFT_480x320
+  #endif
+#endif
+
+// Fewer lines with touch buttons on-screen
+#if EITHER(TFT_320x240, TFT_320x240_SPI)
+  #define HAS_UI_320x240 1
+  #define LCD_HEIGHT TERN(TOUCH_SCREEN, 6, 7)
+#elif EITHER(TFT_480x320, TFT_480x320_SPI)
+  #define HAS_UI_480x320 1
+  #define LCD_HEIGHT TERN(TOUCH_SCREEN, 6, 7)
+#endif
+
+// This emulated DOGM has 'touch/xpt2046', not 'tft/xpt2046'
+#if ENABLED(TOUCH_SCREEN) && !HAS_GRAPHICAL_TFT
+  #undef TOUCH_SCREEN
+  #undef TOUCH_SCREEN_CALIBRATION
+  #define HAS_TOUCH_XPT2046 1
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 #endif

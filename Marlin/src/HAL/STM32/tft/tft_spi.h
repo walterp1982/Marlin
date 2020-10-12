@@ -36,9 +36,15 @@
   #define LCD_READ_ID4 0xD3   // Read display identification information (0xD3 on ILI9341)
 #endif
 
+<<<<<<< HEAD
 #define DATASIZE_8BIT  SPI_DATASIZE_8BIT
 #define DATASIZE_16BIT SPI_DATASIZE_16BIT
 #define TFT_IO_DRIVER  TFT_SPI
+=======
+#define DATASIZE_8BIT    SPI_DATASIZE_8BIT
+#define DATASIZE_16BIT   SPI_DATASIZE_16BIT
+#define TFT_IO_DRIVER TFT_SPI
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 
 class TFT_SPI {
 private:

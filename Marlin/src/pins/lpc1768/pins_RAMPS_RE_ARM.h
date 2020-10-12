@@ -351,7 +351,13 @@
     //#define SHIFT_EN_PIN                 P1_22  // (41)  J5-4 & AUX-4
   #endif
 
+<<<<<<< HEAD
   #if EITHER(VIKI2, miniVIKI)
+=======
+  #if ANY(VIKI2, miniVIKI)
+    //#define LCD_SCREEN_ROT_180
+
+>>>>>>> faae900747 (TFT Refactoring (#19192))
     #define DOGLCD_CS                      P0_16  // (16)
     #define DOGLCD_A0                      P2_06  // (59) J3-8 & AUX-2
     #define DOGLCD_SCK                SD_SCK_PIN

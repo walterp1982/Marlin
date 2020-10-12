@@ -307,6 +307,38 @@
   #define TFT_BUFFER_SIZE                  14400
 #endif
 
+<<<<<<< HEAD
+=======
+// XPT2046 Touch Screen calibration
+#if EITHER(HAS_TFT_LVGL_UI, TFT_480x320_SPI)
+  #ifndef XPT2046_X_CALIBRATION
+    #define XPT2046_X_CALIBRATION         -17253
+  #endif
+  #ifndef XPT2046_Y_CALIBRATION
+    #define XPT2046_Y_CALIBRATION          11579
+  #endif
+  #ifndef XPT2046_X_OFFSET
+    #define XPT2046_X_OFFSET                 514
+  #endif
+  #ifndef XPT2046_Y_OFFSET
+    #define XPT2046_Y_OFFSET                 -24
+  #endif
+#elif ENABLED(SPI_GRAPHICAL_TFT)
+  #ifndef XPT2046_X_CALIBRATION
+    #define XPT2046_X_CALIBRATION         -11386
+  #endif
+  #ifndef XPT2046_Y_CALIBRATION
+    #define XPT2046_Y_CALIBRATION           8684
+  #endif
+  #ifndef XPT2046_X_OFFSET
+    #define XPT2046_X_OFFSET                 339
+  #endif
+  #ifndef XPT2046_Y_OFFSET
+    #define XPT2046_Y_OFFSET                 -18
+  #endif
+#endif
+
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 #if HAS_WIRED_LCD && !HAS_SPI_TFT
   #define BEEPER_PIN                 EXP1_01_PIN
   #define BTN_ENC                    EXP1_02_PIN

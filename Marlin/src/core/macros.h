@@ -659,6 +659,10 @@
 #define HAS_ARGS(V...) _BOOL(FIRST(_END_OF_ARGUMENTS_ V)())
 #define _END_OF_ARGUMENTS_() 0
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> faae900747 (TFT Refactoring (#19192))
 // Simple Inline IF Macros, friendly to use in other macro definitions
 #define IF(O, A, B) ((O) ? (A) : (B))
 #define IF_0(O, A) IF(O, A, 0)
