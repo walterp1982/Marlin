@@ -519,7 +519,11 @@ void GcodeSuite::G26() {
   g26.keep_heaters_on       = parser.boolval('K');
 
   // Accept 'I' if temperature presets are defined
+<<<<<<< HEAD
   #if HAS_PREHEAT
+=======
+  #if PREHEAT_COUNT
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
     const uint8_t preset_index = parser.seenval('I') ? _MIN(parser.value_byte(), PREHEAT_COUNT - 1) + 1 : 0;
   #endif
 

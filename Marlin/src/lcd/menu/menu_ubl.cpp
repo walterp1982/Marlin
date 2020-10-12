@@ -189,10 +189,19 @@ void _lcd_ubl_edit_mesh() {
    * UBL Validate Custom Mesh Command
    */
   void _lcd_ubl_validate_custom_mesh() {
+<<<<<<< HEAD
     char ubl_lcd_gcode[20];
     sprintf_P(ubl_lcd_gcode, PSTR("G28\nG26CPH%" PRIi16 TERN_(HAS_HEATED_BED, "B%" PRIi16))
       , custom_hotend_temp
       OPTARG(HAS_HEATED_BED, custom_bed_temp)
+=======
+    char ubl_lcd_gcode[24];
+    sprintf_P(ubl_lcd_gcode, PSTR("G28\nG26 C P H%" PRIi16 TERN_(HAS_HEATED_BED, " B%" PRIi16))
+      , custom_hotend_temp
+      #if HAS_HEATED_BED
+        , custom_bed_temp
+      #endif
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
     );
     queue.inject(ubl_lcd_gcode);
   }

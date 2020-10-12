@@ -115,15 +115,34 @@ signed char IsReady() {
   return esp_upload.state == upload_idle;
 }
 
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
 void uploadPort_write(const uint8_t *buf, const size_t len) {
   for (size_t i = 0; i < len; i++)
     WIFISERIAL.write(*(buf + i));
+=======
+void uploadPort_write(const uint8_t *buf, size_t len) {
+  #if 0
+  int i;
+
+  for (i = 0; i < len; i++) {
+    while (USART_GetFlagStatus(USART1, USART_FLAG_TC) == RESET) { /* nada */ }
+    USART_SendData(USART1, *(buf + i));
+  }
+  #endif
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
 }
 
 char uploadPort_read() {
   uint8_t retChar;
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
   retChar = WIFISERIAL.read();
   return _MAX(retChar, 0);
+=======
+  if (readUsartFifo(&WifiRxFifo, (int8_t *)&retChar, 1) == 1)
+    return retChar;
+  else
+    return 0;
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
 }
 
 int uploadPort_available() {
@@ -280,6 +299,7 @@ EspUploadResult readPacket(uint8_t op, uint32_t *valp, size_t *bodyLen, uint32_t
     switch (state) {
       case begin: // expecting frame start
         c = uploadPort_read();
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
         if (c != (uint8_t)0xC0) break;
         state = header;
         needBytes = 2;
@@ -314,11 +334,69 @@ EspUploadResult readPacket(uint8_t op, uint32_t *valp, size_t *bodyLen, uint32_t
             if (*bodyLen != 0)
               state = body;
             else {
+=======
+        if (c != (uint8_t)0xC0) {
+          break;
+        }
+        state = header;
+        needBytes = 2;
+
+        break;
+      case end:   // expecting frame end
+        c = uploadPort_read();
+        if (c != (uint8_t)0xC0) {
+          return slipFrame;
+        }
+        state = done;
+
+        break;
+
+      case header:  // reading an 8-byte header
+      case body:    // reading the response body
+        {
+          int rslt;
+          // retrieve a byte with SLIP decoding
+          rslt = ReadByte(&c, 1);
+          if (rslt != 1 && rslt != 2) {
+            // some error occurred
+            stat = (rslt == 0 || rslt == -2) ? slipData : slipFrame;
+            return stat;
+          }
+          else if (state == header) {
+            //store the header byte
+            hdr[hdrIdx++] = c;
+            if (hdrIdx >= headerLength) {
+              // get the body length, prepare a buffer for it
+              *bodyLen = (uint16_t)getData(2, hdr, 2);
+
+              // extract the value, if requested
+              if (valp != 0) {
+                *valp = getData(4, hdr, 4);
+              }
+
+              if (*bodyLen != 0) {
+                state = body;
+              }
+              else {
+                needBytes = 1;
+                state = end;
+              }
+            }
+          }
+          else {
+            // Store the response body byte, check for completion
+            if (bodyIdx < ARRAY_SIZE(respBuf)) {
+              respBuf[bodyIdx] = c;
+            }
+            ++bodyIdx;
+            if (bodyIdx >= *bodyLen) {
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
               needBytes = 1;
               state = end;
             }
           }
         }
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
         else {
           // Store the response body byte, check for completion
           if (bodyIdx < ARRAY_SIZE(respBuf))
@@ -332,6 +410,12 @@ EspUploadResult readPacket(uint8_t op, uint32_t *valp, size_t *bodyLen, uint32_t
       } break;
 
       default: return slipState;  // this shouldn't happen
+=======
+        break;
+
+      default:    // this shouldn't happen
+        return slipState;
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
     }
   }
 
@@ -340,7 +424,14 @@ EspUploadResult readPacket(uint8_t op, uint32_t *valp, size_t *bodyLen, uint32_t
   opRet = (uint8_t)getData(1, hdr, 1);
 
   // Sync packets often provoke a response with a zero opcode instead of ESP_SYNC
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
   if (resp != 0x01 || opRet != op) return respHeader;
+=======
+  if (resp != 0x01 || opRet != op) {
+    //printf("resp %02x %02x\n", resp, opRet); //debug
+    return respHeader;
+  }
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
 
   return success;
 }
@@ -398,6 +489,10 @@ void sendCommand(uint8_t op, uint32_t checkVal, const uint8_t *data, size_t data
   putData(checkVal, 4, hdr, 4);
 
   // send the packet
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
+=======
+  //flushInput();
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
   if (op == ESP_SYNC)
     writePacketRaw(hdr, sizeof(hdr), data, dataLen);
   else
@@ -534,14 +629,99 @@ EspUploadResult flashWriteBlock(uint16_t flashParmVal, uint16_t flashParmMask) {
     if ((stat = doCommand(ESP_FLASH_DATA, blkBuf, blkBufSize, cksum, 0, blockWriteTimeout)) == success)
       break;
   return stat;
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
+=======
+  #else
+    return success;
+  #endif
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
 }
 
 void upload_spin() {
 
   switch (esp_upload.state) {
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
     case resetting:
       if (esp_upload.connectAttemptNumber == 9) {
         esp_upload.uploadResult = connected;
+=======
+  case resetting:
+
+    if (esp_upload.connectAttemptNumber == 9) {
+      // Time to give up
+      //Network::ResetWiFi();
+      esp_upload.uploadResult = connected;
+      esp_upload.state = done;
+    }
+    else {
+
+      // Reset the serial port at the new baud rate. Also reset the ESP8266.
+      //  const uint32_t baud = uploadBaudRates[esp_upload.connectAttemptNumber/esp_upload.retriesPerBaudRate];
+      if (esp_upload.connectAttemptNumber % esp_upload.retriesPerBaudRate == 0) {
+      }
+      //uploadPort.begin(baud);
+      //uploadPort_close();
+
+      uploadPort_begin();
+
+      wifi_delay(2000);
+
+      flushInput();
+
+      esp_upload.lastAttemptTime = esp_upload.lastResetTime = getWifiTick();
+      esp_upload.state = connecting;
+    }
+
+    break;
+
+  case connecting:
+    if ((getWifiTickDiff(esp_upload.lastAttemptTime, getWifiTick()) >= connectAttemptInterval) && (getWifiTickDiff(esp_upload.lastResetTime, getWifiTick()) >= 500)) {
+      // Attempt to establish a connection to the ESP8266.
+      EspUploadResult res = Sync(5000);
+      esp_upload.lastAttemptTime = getWifiTick();
+      if (res == success) {
+        // Successful connection
+        //MessageF(" success on attempt %d\n", (connectAttemptNumber % retriesPerBaudRate) + 1);
+        //printf("connect success\n");
+        esp_upload.state = erasing;
+      }
+      else {
+        // This attempt failed
+        esp_upload.connectAttemptNumber++;
+        if (esp_upload.connectAttemptNumber % retriesPerReset == 0) {
+          esp_upload.state = resetting;   // try a reset and a lower baud rate
+        }
+      }
+    }
+    break;
+
+  case erasing:
+    if (getWifiTickDiff(esp_upload.lastAttemptTime, getWifiTick()) >= blockWriteInterval) {
+      uint32_t eraseSize;
+      const uint32_t sectorsPerBlock = 16;
+      const uint32_t sectorSize = 4096;
+      const uint32_t numSectors = (esp_upload.fileSize + sectorSize - 1)/sectorSize;
+      const uint32_t startSector = esp_upload.uploadAddress/sectorSize;
+
+      uint32_t headSectors = sectorsPerBlock - (startSector % sectorsPerBlock);
+      NOMORE(headSectors, numSectors);
+
+      eraseSize = (numSectors < 2 * headSectors)
+                ? (numSectors + 1) / 2 * sectorSize
+                : (numSectors - headSectors) * sectorSize;
+
+      //MessageF("Erasing %u bytes...\n", fileSize);
+      esp_upload.uploadResult = flashBegin(esp_upload.uploadAddress, eraseSize);
+      if (esp_upload.uploadResult == success) {
+        //MessageF("Uploading file...\n");
+        esp_upload.uploadBlockNumber = 0;
+        esp_upload.uploadNextPercentToReport = percentToReportIncrement;
+        esp_upload.lastAttemptTime = getWifiTick();
+        esp_upload.state = uploading;
+      }
+      else {
+        //MessageF("Erase failed\n");
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
         esp_upload.state = done;
       }
       else {
@@ -630,6 +810,10 @@ void SendUpdateFile(const char *file, uint32_t address) {
 
   esp_upload.fileSize = update_file.fileSize();
 
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/wifi_upload.cpp
+=======
+  esp_upload.fileSize = f_size(&esp_upload.uploadFile);
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686)):Marlin/src/lcd/extui/lib/mks_ui/wifi_upload.cpp
   if (esp_upload.fileSize == 0) {
     update_file.close();
     return;

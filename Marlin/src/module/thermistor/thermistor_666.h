@@ -33,7 +33,11 @@
  * B: 0.00031362
  * C: -2.03978e-07
  */
+<<<<<<< HEAD
 constexpr temp_entry_t temptable_666[] PROGMEM = {
+=======
+const temp_entry_t temptable_666[] PROGMEM = {
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
   { OV(  1), 794 },
   { OV( 18), 288 },
   { OV( 35), 234 },

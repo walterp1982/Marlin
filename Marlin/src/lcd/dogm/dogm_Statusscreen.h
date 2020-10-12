@@ -200,7 +200,11 @@
     #undef STATUS_LOGO_WIDTH
   #endif
 
+<<<<<<< HEAD
   #if !defined(STATUS_HEATERS_X) && ((HAS_HOTEND && STATUS_LOGO_WIDTH && BED_OR_CHAMBER_OR_FAN) || (HOTENDS >= 3 && !BED_OR_CHAMBER_OR_FAN))
+=======
+  #if !defined(STATUS_HEATERS_X) && ((HAS_MULTI_HOTEND && STATUS_LOGO_WIDTH && BED_OR_CHAMBER_OR_FAN) || (HOTENDS >= 3 && !BED_OR_CHAMBER_OR_FAN))
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
     #define _STATUS_HEATERS_X(H,S,N) ((LCD_PIXEL_WIDTH - (H * (S + N)) - (_EXTRA_WIDTH) + (STATUS_LOGO_WIDTH)) / 2)
     #if STATUS_HOTEND1_WIDTH
       #if HOTENDS > 2

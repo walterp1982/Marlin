@@ -946,13 +946,21 @@
 #endif
 
 #if TEMP_SENSOR_BED && PINS_EXIST(TEMP_BED, HEATER_BED)
+<<<<<<< HEAD
   #define _BED_PINS HEATER_BED_PIN, DIO_PIN(TEMP_BED_PIN),
+=======
+  #define _BED_PINS HEATER_BED_PIN, analogInputToDigitalPin(TEMP_BED_PIN),
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
 #else
   #define _BED_PINS
 #endif
 
 #if TEMP_SENSOR_CHAMBER && PIN_EXISTS(TEMP_CHAMBER)
+<<<<<<< HEAD
   #define _CHAMBER_TEMP DIO_PIN(TEMP_CHAMBER_PIN),
+=======
+  #define _CHAMBER_TEMP analogInputToDigitalPin(TEMP_CHAMBER_PIN),
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
 #else
   #define _CHAMBER_TEMP
 #endif
@@ -965,6 +973,7 @@
   #define _CHAMBER_FAN CHAMBER_AUTO_FAN_PIN,
 #else
   #define _CHAMBER_FAN
+<<<<<<< HEAD
 #endif
 
 #if TEMP_SENSOR_COOLER && PIN_EXISTS(TEMP_COOLER)
@@ -981,6 +990,8 @@
   #define _COOLER_FAN COOLER_AUTO_FAN_PIN,
 #else
   #define _COOLER_FAN
+=======
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
 #endif
 
 #ifndef HAL_SENSITIVE_PINS
@@ -1011,6 +1022,11 @@
   _E0_PINS _E1_PINS _E2_PINS _E3_PINS _E4_PINS _E5_PINS _E6_PINS _E7_PINS \
   _H0_PINS _H1_PINS _H2_PINS _H3_PINS _H4_PINS _H5_PINS _H6_PINS _H7_PINS \
   _PS_ON _FAN0 _FAN1 _FAN2 _FAN3 _FAN4 _FAN5 _FAN6 _FAN7 _FANC \
+<<<<<<< HEAD
   _BED_PINS _CHAMBER_TEMP _CHAMBER_HEATER _CHAMBER_FAN \
   _COOLER_TEMP _COOLER _COOLER_FAN HAL_SENSITIVE_PINS \
   _SP_END
+=======
+  _BED_PINS _CHAMBER_TEMP _CHAMBER_HEATER _CHAMBER_FAN HAL_SENSITIVE_PINS \
+}
+>>>>>>> c6cf3da276 (Fix various errors, warnings in example config builds (#19686))
