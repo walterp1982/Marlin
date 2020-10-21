@@ -96,14 +96,13 @@
   #define IS_U8GLIB_SSD1306
 
 #elif ENABLED(RADDS_DISPLAY)
-  #define IS_ULTIPANEL 1
-  #define STD_ENCODER_PULSES_PER_STEP 2
+  #define IS_ULTIPANEL
+  #define ENCODER_PULSES_PER_STEP 2
 
 #elif ANY(miniVIKI, VIKI2, WYH_L12864, ELB_FULL_GRAPHIC_CONTROLLER, AZSMZ_12864, EMOTION_TECH_LCD)
 
   #define DOGLCD
-  #define IS_DOGM_12864 1
-  #define IS_ULTIPANEL 1
+  #define IS_ULTIPANEL
 
   #if ENABLED(miniVIKI)
     #define IS_U8GLIB_ST7565_64128N 1
@@ -135,8 +134,15 @@
 #elif ENABLED(REPRAPWORLD_GRAPHICAL_LCD)
 
   #define DOGLCD
-  #define IS_U8GLIB_ST7920 1
-  #define IS_ULTIPANEL 1
+  #define U8GLIB_ST7920
+  #define IS_ULTIPANEL
+
+#elif ENABLED(CR10_STOCKDISPLAY)
+
+  #define IS_RRD_FG_SC
+  #define BOARD_ST7920_DELAY_1 DELAY_NS(125)
+  #define BOARD_ST7920_DELAY_2 DELAY_NS(125)
+  #define BOARD_ST7920_DELAY_3 DELAY_NS(125)
 
 #elif ENABLED(MKS_12864OLED)
 
@@ -199,7 +205,7 @@
 #elif EITHER(TFTGLCD_PANEL_SPI, TFTGLCD_PANEL_I2C)
 
   #define IS_TFTGLCD_PANEL 1
-  #define IS_ULTIPANEL 1                    // Note that IS_ULTIPANEL leads to HAS_WIRED_LCD
+  #define IS_ULTIPANEL                      // Note that IS_ULTIPANEL leads to HAS_WIRED_LCD
 
   #if ENABLED(SDSUPPORT) && DISABLED(LCD_PROGRESS_BAR)
     #define LCD_PROGRESS_BAR
@@ -302,34 +308,14 @@
  */
 
 // Basic Ultipanel-like displays
-#if ANY(ULTIMAKERCONTROLLER, IS_RRD_SC, G3D_PANEL, RIGIDBOT_PANEL, PANEL_ONE, U8GLIB_SH1106)
-  #define IS_ULTIPANEL 1
+#if ANY(ULTIMAKERCONTROLLER, REPRAP_DISCOUNT_SMART_CONTROLLER, G3D_PANEL, RIGIDBOT_PANEL, PANEL_ONE, U8GLIB_SH1106)
+  #define IS_ULTIPANEL
 #endif
 
 // Einstart OLED has Cardinal nav via pins defined in pins_EINSTART-S.h
 #if ENABLED(U8GLIB_SH1106_EINSTART)
   #define DOGLCD
-  #define IS_ULTIPANEL 1
-#endif
-
-// TFT Compatibility
-#if ANY(FSMC_GRAPHICAL_TFT, SPI_GRAPHICAL_TFT, TFT_320x240, TFT_480x320, TFT_320x240_SPI, TFT_480x320_SPI, TFT_LVGL_UI_FSMC, TFT_LVGL_UI_SPI)
-  #define IS_LEGACY_TFT 1
-  #define TFT_GENERIC
-#endif
-
-#if ANY(FSMC_GRAPHICAL_TFT, TFT_320x240, TFT_480x320, TFT_LVGL_UI_FSMC)
-  #define TFT_INTERFACE_FSMC
-#elif ANY(SPI_GRAPHICAL_TFT, TFT_320x240_SPI, TFT_480x320_SPI, TFT_LVGL_UI_SPI)
-  #define TFT_INTERFACE_SPI
-#endif
-
-#if EITHER(FSMC_GRAPHICAL_TFT, SPI_GRAPHICAL_TFT)
-  #define TFT_CLASSIC_UI
-#elif ANY(TFT_320x240, TFT_480x320, TFT_320x240_SPI, TFT_480x320_SPI)
-  #define TFT_COLOR_UI
-#elif EITHER(TFT_LVGL_UI_FSMC, TFT_LVGL_UI_SPI)
-  #define TFT_LVGL_UI
+  #define IS_ULTIPANEL
 #endif
 
 // Compatibility
@@ -385,38 +371,31 @@
 // Color UI
 #if ENABLED(TFT_COLOR_UI)
   #define HAS_GRAPHICAL_TFT 1
-<<<<<<< HEAD
-  #define IS_ULTIPANEL 1
-=======
   #define IS_ULTIPANEL
->>>>>>> faae900747 (TFT Refactoring (#19192))
 #endif
 
 /**
  * I2C Panels
  */
 
-#if ANY(IS_RRD_SC, IS_DOGM_12864, OLED_PANEL_TINYBOY2, LCD_I2C_PANELOLU2)
+#if EITHER(LCD_SAINSMART_I2C_1602, LCD_SAINSMART_I2C_2004)
 
-  #define STD_ENCODER_PULSES_PER_STEP 4
-  #define STD_ENCODER_STEPS_PER_MENU_ITEM 1
-
-  #if ENABLED(LCD_I2C_PANELOLU2)  // PANELOLU2 LCD with status LEDs, separate encoder and click inputs
-    #define LCD_I2C_TYPE_MCP23017 // I2C Character-based 12864 display
-    #define LCD_I2C_ADDRESS 0x20  // I2C Address of the port expander
-    #define LCD_USE_I2C_BUZZER    // Enable buzzer on LCD (optional)
-    #define IS_ULTIPANEL 1
-  #endif
-
-#elif EITHER(LCD_SAINSMART_I2C_1602, LCD_SAINSMART_I2C_2004)
-
-  #define LCD_I2C_TYPE_PCF8575    // I2C Character-based 12864 display
-  #define LCD_I2C_ADDRESS 0x27    // I2C Address of the port expander
+  #define LCD_I2C_TYPE_PCF8575
+  #define LCD_I2C_ADDRESS 0x27   // I2C Address of the port expander
 
   #if ENABLED(LCD_SAINSMART_I2C_2004)
     #define LCD_WIDTH 20
     #define LCD_HEIGHT 4
   #endif
+
+#elif ENABLED(LCD_I2C_PANELOLU2)
+
+  // PANELOLU2 LCD with status LEDs, separate encoder and click inputs
+
+  #define LCD_I2C_TYPE_MCP23017
+  #define LCD_I2C_ADDRESS 0x20 // I2C Address of the port expander
+  #define LCD_USE_I2C_BUZZER   // Enable buzzer on LCD (optional)
+  #define IS_ULTIPANEL
 
 #elif ENABLED(LCD_I2C_VIKI)
 
@@ -478,9 +457,7 @@
   #define IS_ULTIPANEL 1
 #elif ENABLED(SAV_3DLCD)
   #define SR_LCD_2W_NL    // Non latching 2 wire shift register
-  #define IS_ULTIPANEL 1
-#elif ENABLED(ULTIPANEL)
-  #define IS_ULTIPANEL 1
+  #define IS_ULTIPANEL
 #endif
 
 #if EITHER(IS_ULTIPANEL, ULTRA_LCD)
