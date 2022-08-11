@@ -66,9 +66,28 @@
   #include "../feature/babystep.h"
 #endif
 
+#if ENABLED(USART_LCD)
+  #include "../lcd_show_addr.h"
+#endif
+
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../core/debug_out.h"
 
+<<<<<<< HEAD
+=======
+/**
+ * axis_homed
+ *   Flags that each linear axis was homed. // 每个线性轴复位的标志。
+ *   XYZ on cartesian, ABC on delta, ABZ on SCARA.
+ *
+ * axis_known_position
+ *   Flags that the position is known in each linear axis. Set when homed.
+ *   Cleared whenever a stepper powers off, potentially losing its position.
+ *   标记每个线性轴中已知的位置。当复位时设置。
+ */
+uint8_t axis_homed, axis_known_position; // = 0
+
+>>>>>>> 1775bfc02e (add mingda files)
 // Relative Mode. Enable with G91, disable with G90.
 bool relative_mode; // = false;
 
@@ -178,8 +197,8 @@ xyz_pos_t cartes;
 
 /**
  * Output the current position to serial
+ * 输出当前位置到串口
  */
-
 inline void report_more_positions() {
   stepper.report_positions();
   TERN_(IS_SCARA, scara_report_positions());
@@ -223,7 +242,7 @@ void report_real_position() {
   report_more_positions();
 }
 
-// Report the logical current position according to the most recent G-code command
+// 根据最近的G-code命令报告逻辑当前位置
 void report_current_position() {
   report_logical_position(current_position);
   report_more_positions();
@@ -241,6 +260,7 @@ void report_current_position_projected() {
 }
 
 #if ENABLED(AUTO_REPORT_POSITION)
+<<<<<<< HEAD
   AutoReporter<PositionReport> position_auto_reporter;
 #endif
 
@@ -396,9 +416,16 @@ void quickstop_stepper() {
 
 #endif
 
+=======
+  //struct PositionReport { void report() { report_current_position_projected(); } };
+  AutoReporter<PositionReport> position_auto_reporter;
+#endif
+
+>>>>>>> 1775bfc02e (add mingda files)
 /**
  * Set the planner/stepper positions directly from current_position with
  * no kinematic translation. Used for homing axes and cartesian/core syncing.
+ * 直接从current_position设置规划器/步进器位置，不需要运动平移。用于自导轴和笛卡儿/核心同步
  */
 void sync_plan_position() {
   if (DEBUGGING(LEVELING)) DEBUG_POS("sync_plan_position", current_position);
@@ -417,6 +444,9 @@ void sync_plan_position() {
  * leveling applied. The coordinates need to be run through
  * unapply_leveling to obtain the "ideal" coordinates
  * suitable for current_position, etc.
+ * 
+ * 获取cartes[]数组中的步进位置。正运动学应用于"三角洲"和"机械臂"。
+ * 结果是在当前的坐标空间应用水准。坐标需要通过unapply_level来获得适合current_position的“理想”坐标，等等。
  */
 void get_cartesian_from_steppers() {
   #if ENABLED(DELTA)
@@ -902,6 +932,8 @@ void restore_feedrate_and_scaling() {
    *
    * For DELTA/SCARA the XY constraint is based on the smallest
    * radius within the set software endstops.
+   * 
+   * 用于检测XYZ轴坐标是否超越了机器的最大最小界限。
    */
   void apply_motion_limits(xyz_pos_t &target) {
 
@@ -1151,12 +1183,14 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
      * This calls planner.buffer_line several times, adding
      * small incremental moves. This allows the planner to
      * apply more detailed bed leveling to the full move.
+     * 
+     * 在直角坐标系下准备分段移动。这计划。Buffer_line多次，添加小的增量移动。这允许规划者应用更详细的床的水平，以充分移动。
      */
     inline void segmented_line_to_destination(const_feedRate_t fr_mm_s, const float segment_size=LEVELED_SEGMENT_LENGTH) {
 
       const xyze_float_t diff = destination - current_position;
 
-      // If the move is only in Z/E don't split up the move
+      // If the move is only in Z/E don't split up the move //如果移动只是在Z/E轴移动，就不用分割移动
       if (!diff.x && !diff.y) {
         planner.buffer_line(destination, fr_mm_s);
         return;
@@ -1169,13 +1203,20 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
       TERN_(HAS_EXTRUDERS, if (UNEAR_ZERO(cartesian_mm)) cartesian_mm = ABS(diff.e));
       if (UNEAR_ZERO(cartesian_mm)) return;
 
+      // 分段
       // The length divided by the segment size
       // At least one segment is required
       uint16_t segments = cartesian_mm / segment_size;
       NOLESS(segments, 1U);
 
+<<<<<<< HEAD
       // The approximate length of each segment
       const float inv_segments = 1.0f / float(segments);
+=======
+      // The approximate length of each segment // 每个线段的大概长度
+      const float inv_segments = 1.0f / float(segments),
+                  cartesian_segment_mm = cartesian_mm * inv_segments;
+>>>>>>> 1775bfc02e (add mingda files)
       const xyze_float_t segment_distance = diff * inv_segments;
 
       // Add hints to help optimize the move
@@ -1189,7 +1230,7 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
       // Get the raw current position as starting point
       xyze_pos_t raw = current_position;
 
-      // Calculate and execute the segments
+      // Calculate and execute the segments // 计算和执行段
       millis_t next_idle_ms = millis() + 200UL;
       while (--segments) {
         segment_idle(next_idle_ms);
@@ -1200,7 +1241,16 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
 
       // Since segment_distance is only approximate,
       // the final move must be to the exact destination.
+<<<<<<< HEAD
       planner.buffer_line(destination, fr_mm_s, active_extruder, hints);
+=======
+      // 因为segment_distance只是近似值，最后一步必须是到达确切的目的地。
+      planner.buffer_line(destination, fr_mm_s, active_extruder, cartesian_segment_mm
+        #if ENABLED(SCARA_FEEDRATE_SCALING)
+          , inv_duration
+        #endif
+      );
+>>>>>>> 1775bfc02e (add mingda files)
     }
 
   #endif // SEGMENT_LEVELED_MOVES && !AUTO_BED_LEVELING_UBL
@@ -1212,6 +1262,9 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
    * according to the configuration of the leveling system.
    *
    * Return true if 'current_position' was set to 'destination'
+   * 
+   * 准备一个笛卡尔式的线性移动。当基于网格的调平系统处于活动状态时，根据调平系统的结构对动作进行分段。
+   * 如果'current_position'被设置为'destination'则返回true
    */
   inline bool line_to_destination_cartesian() {
     const float scaled_fr_mm_s = MMS_SCALED(feedrate_mm_s);
@@ -1225,7 +1278,7 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
             return true;                                                             // all moves, including Z-only moves.
           #endif
         #elif ENABLED(SEGMENT_LEVELED_MOVES)
-          segmented_line_to_destination(scaled_fr_mm_s);
+          segmented_line_to_destination(scaled_fr_mm_s);  // 走线分段，获取分段后的调平数据
           return false; // caller will update current_position
         #else
           /**
@@ -1386,20 +1439,37 @@ FORCE_INLINE void segment_idle(millis_t &next_idle_ms) {
  * before calling or cold/lengthy extrusion may get missed.
  *
  * Before exit, current_position is set to destination.
+ * 
+ * 预备好一个动作，准备下一个动作
+ * 这可能会导致多次呼叫planner。buffer_line来为三角洲, 机械臂, mesh移动做小动作，等等。
+ * 在执行之前，确保current_position的e和e的目的地是可执行的，因为冷挤出/过长时间的挤出都有可能会错过。
+ * 在退出之前，current_position被设置为destination。
  */
 void prepare_line_to_destination() {
-  apply_motion_limits(destination);
+  apply_motion_limits(destination); // 查看获取的即将执行的坐标是否超过界限
 
   #if EITHER(PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE)
-
+    // 确认E轴是否为可执行的。
     if (!DEBUGGING(DRYRUN) && destination.e != current_position.e) {
       bool ignore_e = false;
-
+      // 判断是否冷挤出
       #if ENABLED(PREVENT_COLD_EXTRUSION)
         ignore_e = thermalManager.tooColdToExtrude(active_extruder);
+       #if ENABLED(USART_LCD)
+        if(ignore_e){
+          char md_send_C[32] = {0};
+          addHeadMess(md_send_C);
+          md_send_C[2] = 32 - 3;
+          md_send_C[4] = INFO_WARNING >> 8;   md_send_C[5] = INFO_WARNING & 0xff;
+          sprintf_P(&md_send_C[6], "Cold extrusion");
+          send_hexPGM(md_send_C, md_send_C[2] + 3);
+        }
+       #else
         if (ignore_e) SERIAL_ECHO_MSG(STR_ERR_COLD_EXTRUDE_STOP);
+       #endif
       #endif
 
+      // e轴执行长度是否超过最大挤出长度
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
         const float e_delta = ABS(destination.e - current_position.e) * planner.e_factor[active_extruder];
         if (e_delta > (EXTRUDE_MAXLENGTH)) {
@@ -1415,11 +1485,21 @@ void prepare_line_to_destination() {
             }
           #else
             ignore_e = true;
+           #if ENABLED(USART_LCD)
+            char md_send_L[32] = {0};
+            addHeadMess(md_send_L);
+            md_send_L[2] = 32 - 3;
+            md_send_L[4] = INFO_WARNING >> 8;   md_send_L[5] = INFO_WARNING & 0xff;
+            sprintf_P(&md_send_L[6], "Too long");
+            send_hexPGM(md_send_L, md_send_L[2] + 3);
+           #else
             SERIAL_ECHO_MSG(STR_ERR_LONG_EXTRUDE_STOP);
+           #endif
           #endif
         }
       #endif
 
+      // 执行e轴的动作
       if (ignore_e) {
         current_position.e = destination.e;       // Behave as if the E move really took place
         planner.set_e_position_mm(destination.e); // Prevent the planner from complaining too
@@ -1495,6 +1575,47 @@ void prepare_line_to_destination() {
     return homing_feedrate(axis) / float(hbd);
   }
 
+<<<<<<< HEAD
+=======
+#endif // SENSORLESS_HOMING
+
+/**
+ * 设置步进电机的值
+ * @param axis 需要设置的轴
+ * @param distance 需要设置的位置（步数）
+ */
+void set_step_value(const AxisEnum axis, const float distance){
+  planner.set_axis_position_mm(axis, distance);
+}
+/**
+ * Home an individual linear axis
+ */
+void do_homing_move(const AxisEnum axis, const float distance, const feedRate_t fr_mm_s=0.0) {
+  DEBUG_SECTION(log_move, "do_homing_move", DEBUGGING(LEVELING));
+
+  const feedRate_t real_fr_mm_s = fr_mm_s ?: homing_feedrate(axis);
+
+  if (DEBUGGING(LEVELING)) {
+    DEBUG_ECHOPAIR("...(", axis_codes[axis], ", ", distance, ", ");
+    if (fr_mm_s)
+      DEBUG_ECHO(fr_mm_s);
+    else
+      DEBUG_ECHOPAIR("[", real_fr_mm_s, "]");
+    DEBUG_ECHOLNPGM(")");
+  }
+
+  #if ALL(HOMING_Z_WITH_PROBE, HAS_HEATED_BED, WAIT_FOR_BED_HEATER)
+    // Wait for bed to heat back up between probing points
+    if (axis == Z_AXIS && distance < 0)
+      thermalManager.wait_for_bed_heating();
+  #endif
+
+  // Only do some things when moving towards an endstop
+  const int8_t axis_home_dir = TERN0(DUAL_X_CARRIAGE, axis == X_AXIS)
+                ? x_home_dir(active_extruder) : home_dir(axis);
+  const bool is_home_dir = (axis_home_dir > 0) == (distance > 0);
+
+>>>>>>> 1775bfc02e (add mingda files)
   #if ENABLED(SENSORLESS_HOMING)
     /**
      * Set sensorless homing if the axis has it, accounting for Core Kinematics.
@@ -1590,10 +1711,16 @@ void prepare_line_to_destination() {
         }
       #endif
 
+<<<<<<< HEAD
       TERN_(IMPROVE_HOMING_RELIABILITY, sg_guard_period = millis() + default_sg_guard_duration);
 
       return stealth_states;
     }
+=======
+  planner.synchronize();
+  
+  if (is_home_dir) {
+>>>>>>> 1775bfc02e (add mingda files)
 
     void end_sensorless_homing_per_axis(const AxisEnum axis, sensorless_t enable_stealth) {
       switch (axis) {
@@ -1779,6 +1906,7 @@ void prepare_line_to_destination() {
       #endif
     }
   }
+<<<<<<< HEAD
 
   /**
    * Set an axis to be unhomed. (Unless we are on a machine - e.g. a cheap Chinese CNC machine -
@@ -2278,6 +2406,12 @@ void prepare_line_to_destination() {
   } // homeaxis()
 
 #endif // HAS_ENDSTOPS
+=======
+  if(stop_home){
+    set_step_value(axis, 50.0f);    // 这里设置为0的话，得到的步进为-50左右，+50为了抵消，这需要注意
+  }
+}
+>>>>>>> 1775bfc02e (add mingda files)
 
 /**
  * Set an axis' current position to its home position (after homing).
@@ -2355,6 +2489,418 @@ void set_axis_is_at_home(const AxisEnum axis) {
   }
 }
 
+<<<<<<< HEAD
+=======
+/**
+ * Set an axis to be unhomed.
+ */
+void set_axis_never_homed(const AxisEnum axis) {
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> set_axis_never_homed(", axis_codes[axis], ")");
+
+  CBI(axis_known_position, axis);
+  CBI(axis_homed, axis);
+
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< set_axis_never_homed(", axis_codes[axis], ")");
+
+  TERN_(I2C_POSITION_ENCODERS, I2CPEM.unhomed(axis));
+}
+
+#ifdef TMC_HOME_PHASE
+  /**
+   * Move the axis back to its home_phase if set and driver is capable (TMC)
+   *
+   * Improves homing repeatability by homing to stepper coil's nearest absolute
+   * phase position. Trinamic drivers use a stepper phase table with 1024 values
+   * spanning 4 full steps with 256 positions each (ergo, 1024 positions).
+   */
+  void backout_to_tmc_homing_phase(const AxisEnum axis) {
+    const xyz_long_t home_phase = TMC_HOME_PHASE;
+
+    // check if home phase is disabled for this axis.
+    if (home_phase[axis] < 0) return;
+
+    int16_t phasePerUStep,      // TMC µsteps(phase) per Marlin µsteps
+            phaseCurrent,       // The TMC µsteps(phase) count of the current position
+            effectorBackoutDir, // Direction in which the effector mm coordinates move away from endstop.
+            stepperBackoutDir;  // Direction in which the TMC µstep count(phase) move away from endstop.
+
+    #define PHASE_PER_MICROSTEP(N) (256 / _MAX(1, N##_MICROSTEPS))
+
+    switch (axis) {
+      #ifdef X_MICROSTEPS
+        case X_AXIS:
+          phasePerUStep = PHASE_PER_MICROSTEP(X);
+          phaseCurrent = stepperX.get_microstep_counter();
+          effectorBackoutDir = -X_HOME_DIR;
+          stepperBackoutDir = INVERT_X_DIR ? effectorBackoutDir : -effectorBackoutDir;
+          break;
+      #endif
+      #ifdef Y_MICROSTEPS
+        case Y_AXIS:
+          phasePerUStep = PHASE_PER_MICROSTEP(Y);
+          phaseCurrent = stepperY.get_microstep_counter();
+          effectorBackoutDir = -Y_HOME_DIR;
+          stepperBackoutDir = INVERT_Y_DIR ? effectorBackoutDir : -effectorBackoutDir;
+          break;
+      #endif
+      #ifdef Z_MICROSTEPS
+        case Z_AXIS:
+          phasePerUStep = PHASE_PER_MICROSTEP(Z);
+          phaseCurrent = stepperZ.get_microstep_counter();
+          effectorBackoutDir = -Z_HOME_DIR;
+          stepperBackoutDir = INVERT_Z_DIR ? effectorBackoutDir : -effectorBackoutDir;
+          break;
+      #endif
+      default: return;
+    }
+
+    // Phase distance to nearest home phase position when moving in the backout direction from endstop(may be negative).
+    int16_t phaseDelta = (home_phase[axis] - phaseCurrent) * stepperBackoutDir;
+
+    // Check if home distance within endstop assumed repeatability noise of .05mm and warn.
+    if (ABS(phaseDelta) * planner.steps_to_mm[axis] / phasePerUStep < 0.05f)
+      SERIAL_ECHOLNPAIR("Selected home phase ", home_phase[axis],
+                       " too close to endstop trigger phase ", phaseCurrent,
+                       ". Pick a different phase for ", axis_codes[axis]);
+
+    // Skip to next if target position is behind current. So it only moves away from endstop.
+    if (phaseDelta < 0) phaseDelta += 1024;
+
+    // Convert TMC µsteps(phase) to whole Marlin µsteps to effector backout direction to mm
+    const float mmDelta = int16_t(phaseDelta / phasePerUStep) * effectorBackoutDir * planner.steps_to_mm[axis];
+
+    // Optional debug messages
+    if (DEBUGGING(LEVELING)) {
+      DEBUG_ECHOLNPAIR(
+        "Endstop ", axis_codes[axis], " hit at Phase:", phaseCurrent,
+        " Delta:", phaseDelta, " Distance:", mmDelta
+      );
+    }
+
+    if (mmDelta != 0) {
+      // Retrace by the amount computed in mmDelta.
+      do_homing_move(axis, mmDelta, get_homing_bump_feedrate(axis));
+    }
+  }
+#endif
+
+/**
+ * Home an individual "raw axis" to its endstop.
+ * This applies to XYZ on Cartesian and Core robots, and
+ * to the individual ABC steppers on DELTA and SCARA.
+ *
+ * At the end of the procedure the axis is marked as
+ * homed and the current position of that axis is updated.
+ * Kinematic robots should wait till all axes are homed
+ * before updating the current position.
+ */
+
+void homeaxis(const AxisEnum axis) {
+
+  #if IS_SCARA
+    // Only Z homing (with probe) is permitted
+    if (axis != Z_AXIS) { BUZZ(100, 880); return; }
+  #else
+    #define _CAN_HOME(A) (axis == _AXIS(A) && ( \
+         ENABLED(A##_SPI_SENSORLESS) \
+      || (_AXIS(A) == Z_AXIS && ENABLED(HOMING_Z_WITH_PROBE)) \
+      || (A##_MIN_PIN > -1 && A##_HOME_DIR < 0) \
+      || (A##_MAX_PIN > -1 && A##_HOME_DIR > 0) \
+    ))
+    if (!_CAN_HOME(X) && !_CAN_HOME(Y) && !_CAN_HOME(Z)) return;
+  #endif
+
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(">>> homeaxis(", axis_codes[axis], ")");
+
+  const int axis_home_dir = TERN0(DUAL_X_CARRIAGE, axis == X_AXIS)
+              ? x_home_dir(active_extruder) : home_dir(axis);
+
+  // Homing Z towards the bed? Deploy the Z probe or endstop.
+  if (TERN0(HOMING_Z_WITH_PROBE, axis == Z_AXIS && probe.deploy()))
+    return;
+
+  // Set flags for X, Y, Z motor locking
+  #if HAS_EXTRA_ENDSTOPS
+    switch (axis) {
+      TERN_(X_DUAL_ENDSTOPS, case X_AXIS:)
+      TERN_(Y_DUAL_ENDSTOPS, case Y_AXIS:)
+      TERN_(Z_MULTI_ENDSTOPS, case Z_AXIS:)
+        stepper.set_separate_multi_axis(true);
+      default: break;
+    }
+  #endif
+
+  // Fast move towards endstop until triggered
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 1 Fast:");
+
+  #if BOTH(HOMING_Z_WITH_PROBE, BLTOUCH)
+    if (axis == Z_AXIS && bltouch.deploy()) return; // The initial DEPLOY
+  #endif
+
+  #if DISABLED(DELTA) && defined(SENSORLESS_BACKOFF_MM)
+    const xy_float_t backoff = SENSORLESS_BACKOFF_MM;
+    if (((ENABLED(X_SENSORLESS) && axis == X_AXIS) || (ENABLED(Y_SENSORLESS) && axis == Y_AXIS)) && backoff[axis])
+      do_homing_move(axis, -ABS(backoff[axis]) * axis_home_dir, homing_feedrate(axis));
+  #endif
+
+  do_homing_move(axis, 1.5f * max_length(TERN(DELTA, Z_AXIS, axis)) * axis_home_dir);
+
+  #if BOTH(HOMING_Z_WITH_PROBE, BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
+    if (axis == Z_AXIS) bltouch.stow(); // Intermediate STOW (in LOW SPEED MODE)
+  #endif
+
+  // When homing Z with probe respect probe clearance
+  const bool use_probe_bump = TERN0(HOMING_Z_WITH_PROBE, axis == Z_AXIS && home_bump_mm(Z_AXIS));
+  const float bump = axis_home_dir * (
+    use_probe_bump ? _MAX(TERN0(HOMING_Z_WITH_PROBE, Z_CLEARANCE_BETWEEN_PROBES), home_bump_mm(Z_AXIS)) : home_bump_mm(axis)
+  );
+
+  // If a second homing move is configured...
+  if (bump && !stop_home) {
+    // Move away from the endstop by the axis HOMING_BUMP_MM
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Move Away:");
+    do_homing_move(axis, -bump
+      #if HOMING_Z_WITH_PROBE
+        , MMM_TO_MMS(axis == Z_AXIS ? Z_PROBE_SPEED_FAST : 0)
+      #endif
+    );
+
+    #if ENABLED(DETECT_BROKEN_ENDSTOP)
+      // Check for a broken endstop
+      EndstopEnum es;
+      switch (axis) {
+        default:
+        case X_AXIS: es = X_ENDSTOP; break;
+        case Y_AXIS: es = Y_ENDSTOP; break;
+        case Z_AXIS: es = Z_ENDSTOP; break;
+      }
+      if (TEST(endstops.state(), es)) {
+        SERIAL_ECHO_MSG("Bad ", axis_codes[axis], " Endstop?");
+        kill(GET_TEXT(MSG_KILL_HOMING_FAILED));
+      }
+    #endif
+
+    // Slow move towards endstop until triggered
+    if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("Home 2 Slow:");
+
+    #if BOTH(HOMING_Z_WITH_PROBE, BLTOUCH) && DISABLED(BLTOUCH_HS_MODE)
+      if (axis == Z_AXIS && bltouch.deploy()) return; // Intermediate DEPLOY (in LOW SPEED MODE)
+    #endif
+
+    do_homing_move(axis, 2 * bump, get_homing_bump_feedrate(axis));
+
+    #if BOTH(HOMING_Z_WITH_PROBE, BLTOUCH)
+      if (axis == Z_AXIS) bltouch.stow(); // The final STOW
+    #endif
+  }
+
+  #if HAS_EXTRA_ENDSTOPS
+    const bool pos_dir = axis_home_dir > 0;
+    #if ENABLED(X_DUAL_ENDSTOPS)
+      if (axis == X_AXIS) {
+        const float adj = ABS(endstops.x2_endstop_adj);
+        if (adj) {
+          if (pos_dir ? (endstops.x2_endstop_adj > 0) : (endstops.x2_endstop_adj < 0)) stepper.set_x_lock(true); else stepper.set_x2_lock(true);
+          do_homing_move(axis, pos_dir ? -adj : adj);
+          stepper.set_x_lock(false);
+          stepper.set_x2_lock(false);
+        }
+      }
+    #endif
+    #if ENABLED(Y_DUAL_ENDSTOPS)
+      if (axis == Y_AXIS) {
+        const float adj = ABS(endstops.y2_endstop_adj);
+        if (adj) {
+          if (pos_dir ? (endstops.y2_endstop_adj > 0) : (endstops.y2_endstop_adj < 0)) stepper.set_y_lock(true); else stepper.set_y2_lock(true);
+          do_homing_move(axis, pos_dir ? -adj : adj);
+          stepper.set_y_lock(false);
+          stepper.set_y2_lock(false);
+        }
+      }
+    #endif
+
+    #if ENABLED(Z_MULTI_ENDSTOPS)
+      if (axis == Z_AXIS) {
+
+        #if NUM_Z_STEPPER_DRIVERS == 2
+
+          const float adj = ABS(endstops.z2_endstop_adj);
+          if (adj) {
+            if (pos_dir ? (endstops.z2_endstop_adj > 0) : (endstops.z2_endstop_adj < 0)) stepper.set_z1_lock(true); else stepper.set_z2_lock(true);
+            do_homing_move(axis, pos_dir ? -adj : adj);
+            stepper.set_z1_lock(false);
+            stepper.set_z2_lock(false);
+          }
+
+        #else
+
+          // Handy arrays of stepper lock function pointers
+
+          typedef void (*adjustFunc_t)(const bool);
+
+          adjustFunc_t lock[] = {
+            stepper.set_z1_lock, stepper.set_z2_lock, stepper.set_z3_lock
+            #if NUM_Z_STEPPER_DRIVERS >= 4
+              , stepper.set_z4_lock
+            #endif
+          };
+          float adj[] = {
+            0, endstops.z2_endstop_adj, endstops.z3_endstop_adj
+            #if NUM_Z_STEPPER_DRIVERS >= 4
+              , endstops.z4_endstop_adj
+            #endif
+          };
+
+          adjustFunc_t tempLock;
+          float tempAdj;
+
+          // Manual bubble sort by adjust value
+          if (adj[1] < adj[0]) {
+            tempLock = lock[0], tempAdj = adj[0];
+            lock[0] = lock[1], adj[0] = adj[1];
+            lock[1] = tempLock, adj[1] = tempAdj;
+          }
+          if (adj[2] < adj[1]) {
+            tempLock = lock[1], tempAdj = adj[1];
+            lock[1] = lock[2], adj[1] = adj[2];
+            lock[2] = tempLock, adj[2] = tempAdj;
+          }
+          #if NUM_Z_STEPPER_DRIVERS >= 4
+            if (adj[3] < adj[2]) {
+              tempLock = lock[2], tempAdj = adj[2];
+              lock[2] = lock[3], adj[2] = adj[3];
+              lock[3] = tempLock, adj[3] = tempAdj;
+            }
+            if (adj[2] < adj[1]) {
+              tempLock = lock[1], tempAdj = adj[1];
+              lock[1] = lock[2], adj[1] = adj[2];
+              lock[2] = tempLock, adj[2] = tempAdj;
+            }
+          #endif
+          if (adj[1] < adj[0]) {
+            tempLock = lock[0], tempAdj = adj[0];
+            lock[0] = lock[1], adj[0] = adj[1];
+            lock[1] = tempLock, adj[1] = tempAdj;
+          }
+
+          if (pos_dir) {
+            // normalize adj to smallest value and do the first move
+            (*lock[0])(true);
+            do_homing_move(axis, adj[1] - adj[0]);
+            // lock the second stepper for the final correction
+            (*lock[1])(true);
+            do_homing_move(axis, adj[2] - adj[1]);
+            #if NUM_Z_STEPPER_DRIVERS >= 4
+              // lock the third stepper for the final correction
+              (*lock[2])(true);
+              do_homing_move(axis, adj[3] - adj[2]);
+            #endif
+          }
+          else {
+            #if NUM_Z_STEPPER_DRIVERS >= 4
+              (*lock[3])(true);
+              do_homing_move(axis, adj[2] - adj[3]);
+            #endif
+            (*lock[2])(true);
+            do_homing_move(axis, adj[1] - adj[2]);
+            (*lock[1])(true);
+            do_homing_move(axis, adj[0] - adj[1]);
+          }
+
+          stepper.set_z1_lock(false);
+          stepper.set_z2_lock(false);
+          stepper.set_z3_lock(false);
+          #if NUM_Z_STEPPER_DRIVERS >= 4
+            stepper.set_z4_lock(false);
+          #endif
+
+        #endif
+      }
+    #endif
+
+    // Reset flags for X, Y, Z motor locking
+    switch (axis) {
+      default: break;
+      TERN_(X_DUAL_ENDSTOPS, case X_AXIS:)
+      TERN_(Y_DUAL_ENDSTOPS, case Y_AXIS:)
+      TERN_(Z_MULTI_ENDSTOPS, case Z_AXIS:)
+        stepper.set_separate_multi_axis(false);
+    }
+  #endif
+
+  #ifdef TMC_HOME_PHASE
+    // move back to homing phase if configured and capable
+    backout_to_tmc_homing_phase(axis);
+  #endif
+
+  #if IS_SCARA
+
+    set_axis_is_at_home(axis);
+    sync_plan_position();
+
+  #elif ENABLED(DELTA)
+
+    // Delta has already moved all three towers up in G28
+    // so here it re-homes each tower in turn.
+    // Delta homing treats the axes as normal linear axes.
+
+    const float adjDistance = delta_endstop_adj[axis],
+                minDistance = (MIN_STEPS_PER_SEGMENT) * planner.steps_to_mm[axis];
+
+    // Retrace by the amount specified in delta_endstop_adj if more than min steps.
+    if (adjDistance * (Z_HOME_DIR) < 0 && ABS(adjDistance) > minDistance) { // away from endstop, more than min distance
+      if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("adjDistance:", adjDistance);
+      do_homing_move(axis, adjDistance, get_homing_bump_feedrate(axis));
+    }
+
+  #else // CARTESIAN / CORE / MARKFORGED_XY
+
+    set_axis_is_at_home(axis);
+    sync_plan_position();
+
+    destination[axis] = current_position[axis];
+
+    if (DEBUGGING(LEVELING)) DEBUG_POS("> AFTER set_axis_is_at_home", current_position);
+
+  #endif
+
+  // Put away the Z probe
+  #if HOMING_Z_WITH_PROBE
+    if (axis == Z_AXIS && probe.stow()) return;
+  #endif
+
+  #if DISABLED(DELTA) && defined(HOMING_BACKOFF_POST_MM)
+    const xyz_float_t endstop_backoff = HOMING_BACKOFF_POST_MM;
+    if (endstop_backoff[axis]) {
+      current_position[axis] -= ABS(endstop_backoff[axis]) * axis_home_dir;
+      line_to_current_position(
+        #if HOMING_Z_WITH_PROBE
+          (axis == Z_AXIS) ? MMM_TO_MMS(Z_PROBE_SPEED_FAST) :
+        #endif
+        homing_feedrate(axis)
+      );
+
+      #if ENABLED(SENSORLESS_HOMING)
+        planner.synchronize();
+        if (false
+          #if EITHER(IS_CORE, MARKFORGED_XY)
+            || axis != NORMAL_AXIS
+          #endif
+        ) safe_delay(200);  // Short delay to allow belts to spring back
+      #endif
+    }
+  #endif
+
+  // Clear retracted status if homing the Z axis
+  #if ENABLED(FWRETRACT)
+    if (axis == Z_AXIS) fwretract.current_hop = 0.0;
+  #endif
+
+  if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR("<<< homeaxis(", axis_codes[axis], ")");
+
+} // homeaxis()
+
+>>>>>>> 1775bfc02e (add mingda files)
 #if HAS_WORKSPACE_OFFSET
   void update_workspace_offset(const AxisEnum axis) {
     workspace_offset[axis] = home_offset[axis] + position_shift[axis];

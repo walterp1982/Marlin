@@ -22,7 +22,14 @@
 #pragma once
 
 #include "../inc/MarlinConfig.h"
+<<<<<<< HEAD
 #include "serial_hook.h"
+=======
+// #include "serial_hook.h"
+
+#define RTT_AS_SERIAL_OUT 1
+#include "rtt.h"
+>>>>>>> 1775bfc02e (add mingda files)
 
 #if HAS_MEATPACK
   #include "../feature/meatpack.h"
@@ -119,10 +126,21 @@ extern uint8_t marlin_debug_flags;
   extern SerialOutputT        multiSerial;
   #define SERIAL_IMPL         multiSerial
 #else
+<<<<<<< HEAD
   #define _PORT_REDIRECT(n,p) NOOP
   #define _PORT_RESTORE(n)    NOOP
   #define SERIAL_ASSERT(P)    NOOP
   #define SERIAL_IMPL         SERIAL_LEAF_1
+=======
+  #define _PORT_REDIRECT(n,p)   NOOP
+  #define _PORT_RESTORE(n)      NOOP
+  #if RTT_AS_SERIAL_OUT
+    #define SERIAL_OUT(WHAT, V...) do { rtt.WHAT(V); MYSERIAL0.WHAT(V); } while (0)
+  #else
+    #define SERIAL_OUT(WHAT, V...) (void)MYSERIAL0.WHAT(V)
+  #endif
+  #define SERIAL_ASSERT(P)      NOOP
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 #define SERIAL_OUT(WHAT, V...)  (void)SERIAL_IMPL.WHAT(V)
@@ -333,6 +351,8 @@ void serialprintln_onoff(const bool onoff);
 void serialprint_truefalse(const bool tf);
 void serial_spaces(uint8_t count);
 void serial_offset(const_float_t v, const uint8_t sp=0); // For v==0 draw space (sp==1) or plus (sp==2)
+
+void send_hexPGM(PGM_P str, int len);
 
 void print_bin(const uint16_t val);
 void print_pos(NUM_AXIS_ARGS(const_float_t), FSTR_P const prefix=nullptr, FSTR_P const suffix=nullptr);

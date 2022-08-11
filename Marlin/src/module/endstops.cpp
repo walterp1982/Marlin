@@ -399,7 +399,14 @@ void Endstops::init() {
     #endif
   #endif
 
+<<<<<<< HEAD
   #if USES_Z_MIN_PROBE_PIN
+=======
+  #if HAS_CUSTOM_PROBE_PIN
+      //校准引脚 拉低
+      OUT_WRITE(CALIB_PIN, LOW);  //add code du 2021.1.22
+
+>>>>>>> 1775bfc02e (add mingda files)
     #if ENABLED(ENDSTOPPULLUP_ZMIN_PROBE)
       SET_INPUT_PULLUP(Z_MIN_PROBE_PIN);
     #elif ENABLED(ENDSTOPPULLDOWN_ZMIN_PROBE)
@@ -451,10 +458,15 @@ void Endstops::not_homing() {
 }
 
 #if ENABLED(VALIDATE_HOMING_ENDSTOPS)
-  // If the last move failed to trigger an endstop, call kill
+  // 如果最后一个移动未能触发endstop，调用kill
   void Endstops::validate_homing_move() {
+<<<<<<< HEAD
     if (trigger_state()) hit_on_purpose();
     else kill(GET_TEXT_F(MSG_KILL_HOMING_FAILED));
+=======
+    if (trigger_state() || stop_home) hit_on_purpose();
+    else kill(GET_TEXT(MSG_KILL_HOMING_FAILED));
+>>>>>>> 1775bfc02e (add mingda files)
   }
 #endif
 

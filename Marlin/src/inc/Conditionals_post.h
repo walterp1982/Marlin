@@ -48,7 +48,11 @@
   // Set additional flags to let HALs choose in their Conditionals_post.h
   #if ANY(FLASH_EEPROM_EMULATION, SRAM_EEPROM_EMULATION, SDCARD_EEPROM_EMULATION, QSPI_EEPROM)
     #define USE_EMULATED_EEPROM 1
+<<<<<<< HEAD
   #elif EITHER(I2C_EEPROM, SPI_EEPROM)
+=======
+  #elif ANY(I2C_EEPROM, SPI_EEPROM, W25QXX_SPI_EEPROM)
+>>>>>>> 1775bfc02e (add mingda files)
     #define USE_WIRED_EEPROM    1
   #elif ENABLED(IIC_BL24CXX_EEPROM)
     // nothing
@@ -2911,7 +2915,11 @@
 #if !HAS_TEMP_SENSOR
   #undef AUTO_REPORT_TEMPERATURES
 #endif
+<<<<<<< HEAD
 #if ANY(AUTO_REPORT_TEMPERATURES, AUTO_REPORT_SD_STATUS, AUTO_REPORT_POSITION, AUTO_REPORT_FANS)
+=======
+#if ANY(AUTO_REPORT_TEMPERATURES, AUTO_REPORT_SD_STATUS, AUTO_REPORT_POSITION)
+>>>>>>> 1775bfc02e (add mingda files)
   #define HAS_AUTO_REPORTING 1
 #endif
 
@@ -3471,16 +3479,32 @@
   #define PROBING_MARGIN_BACK 0
 #else
   #ifndef PROBING_MARGIN_LEFT
-    #define PROBING_MARGIN_LEFT PROBING_MARGIN
+    #ifdef PROBING_MARGIN_X
+      #define PROBING_MARGIN_LEFT PROBING_MARGIN_X
+    #else
+      #define PROBING_MARGIN_LEFT PROBING_MARGIN
+    #endif
   #endif
   #ifndef PROBING_MARGIN_RIGHT
-    #define PROBING_MARGIN_RIGHT PROBING_MARGIN
+    #ifdef PROBING_MARGIN_X
+      #define PROBING_MARGIN_RIGHT PROBING_MARGIN_X
+    #else
+      #define PROBING_MARGIN_RIGHT PROBING_MARGIN
+    #endif
   #endif
   #ifndef PROBING_MARGIN_FRONT
-    #define PROBING_MARGIN_FRONT PROBING_MARGIN
+    #ifdef PROBING_MARGIN_Y
+      #define PROBING_MARGIN_FRONT PROBING_MARGIN_Y
+    #else
+      #define PROBING_MARGIN_FRONT PROBING_MARGIN
+    #endif
   #endif
   #ifndef PROBING_MARGIN_BACK
-    #define PROBING_MARGIN_BACK PROBING_MARGIN
+    #ifdef PROBING_MARGIN_Y
+      #define PROBING_MARGIN_BACK PROBING_MARGIN_Y
+    #else
+      #define PROBING_MARGIN_BACK PROBING_MARGIN
+    #endif
   #endif
 #endif
 

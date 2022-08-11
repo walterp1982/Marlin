@@ -49,7 +49,13 @@ void GcodeSuite::M21() {
  * M22: Release SD Card
  */
 void GcodeSuite::M22() {
+<<<<<<< HEAD
   if (!IS_SD_PRINTING()) card.release();
+=======
+
+  if (!IS_SD_PRINTING()) card.release();
+
+>>>>>>> 1775bfc02e (add mingda files)
 }
 
 #endif // SDSUPPORT

@@ -36,12 +36,17 @@
  */
 
 // Change EEPROM version if the structure changes
+<<<<<<< HEAD
 #define EEPROM_VERSION "V86"
 #define EEPROM_OFFSET 100
+=======
+// #define EEPROM_VERSION "V1"
+// #define EEPROM_OFFSET 100
+>>>>>>> 1775bfc02e (add mingda files)
 
 // Check the integrity of data offsets.
 // Can be disabled for production build.
-//#define DEBUG_EEPROM_READWRITE
+#define DEBUG_EEPROM_READWRITE
 
 #include "settings.h"
 
@@ -170,6 +175,20 @@
   #include "../lcd/extui/dgus/DGUSScreenHandler.h"
   #include "../lcd/extui/dgus/DGUSDisplayDef.h"
 #endif
+
+#if ENABLED(MD_FSMC_LCD)
+  // #include "../lcd/extui/lib/tsc/TSC_Menu.h"
+  #include "../lcd/extui/lib/tsc/Menu/Settings.h"
+  #if ENABLED(LEVELING_OFFSET)
+    #include "../lcd/extui/lib/tsc/Menu/LevelingOffset.h"
+  #endif
+#endif
+
+#if ENABLED(BABYSTEPPING)
+  // #include "../../src/feature/babystep.h"
+  #include  "../../src/lcd/extui/lib/tsc/Menu/BabyStep.h"
+#endif
+#include "../lcd/extui/lib/tsc/Menu/PreheatMenu.h"
 
 #pragma pack(push, 1) // No padding between variables
 
@@ -573,6 +592,18 @@ typedef struct SettingsDataStruct {
     MPC_t mpc_constants[HOTENDS];                       // M306
   #endif
 
+  #if 0 //add by langgo
+    SETTINGS custom_settings;
+    uint32_t TSC_Para[7];
+  #endif
+
+  uint16_t Preheat_Temp[THE_MATERIAL_NUM][2];
+  TERN_(LEVELING_OFFSET, float leveling_offset;)
+  #if ENABLED(BABYSTEPPING)
+    //int16_t babystep_z_steps;
+    float babystep_z_value;
+  #endif
+
 } SettingsData;
 
 //static_assert(sizeof(SettingsData) <= MARLIN_EEPROM_SIZE, "EEPROM too small to contain SettingsData!");
@@ -835,7 +866,11 @@ void MarlinSettings::postprocess() {
     // Global Leveling
     //
     {
+<<<<<<< HEAD
       const float zfh = TERN(ENABLE_LEVELING_FADE_HEIGHT, planner.z_fade_height, (DEFAULT_LEVELING_FADE_HEIGHT));
+=======
+      const float zfh = TERN(ENABLE_LEVELING_FADE_HEIGHT, planner.z_fade_height, DEFAULT_LEVELING_FADE_HEIGHT);
+>>>>>>> 1775bfc02e (add mingda files)
       EEPROM_WRITE(zfh);
     }
 
@@ -1555,6 +1590,7 @@ void MarlinSettings::postprocess() {
     #endif
 
     //
+<<<<<<< HEAD
     // Ethernet network info
     //
     #if HAS_ETHERNET
@@ -1614,6 +1650,28 @@ void MarlinSettings::postprocess() {
 
     //
     // Report final CRC and Data Size
+=======
+    // Preheat
+    //
+    EEPROM_WRITE(PreheatTemp);
+
+    //
+    // Leveling Offset
+    //
+    TERN_(LEVELING_OFFSET, EEPROM_WRITE(LevelingOffset);)
+
+    //
+    // BABYSTEPPING
+    //
+    #if ENABLED(BABYSTEPPING)
+      // EEPROM_WRITE( babystep.axis_total[BS_TOTAL_IND(Z_AXIS)] );
+      EEPROM_WRITE(babystep_value);
+    #endif
+
+
+    //
+    // Validate CRC and Data Size
+>>>>>>> 1775bfc02e (add mingda files)
     //
     if (!eeprom_error) {
       const uint16_t eeprom_size = eeprom_index - (EEPROM_OFFSET),
@@ -2531,6 +2589,7 @@ void MarlinSettings::postprocess() {
       #endif
 
       //
+<<<<<<< HEAD
       // Ethernet network info
       //
       #if HAS_ETHERNET
@@ -2595,6 +2654,26 @@ void MarlinSettings::postprocess() {
       //
       // Validate Final Size and CRC
       //
+=======
+      // Preheat
+      //
+      EEPROM_READ(PreheatTemp);
+
+      //
+      // Leveling Offset
+      //
+      TERN_(LEVELING_OFFSET, EEPROM_READ(LevelingOffset);)
+
+      //
+      // BABYSTEPPING
+      //
+      #if ENABLED(BABYSTEPPING)
+        // EEPROM_READ(babystep.axis_total[BS_TOTAL_IND(Z_AXIS)]);
+        EEPROM_READ(babystep_value);
+      #endif
+
+
+>>>>>>> 1775bfc02e (add mingda files)
       eeprom_error = size_error(eeprom_index - (EEPROM_OFFSET));
       if (eeprom_error) {
         DEBUG_ECHO_MSG("Index: ", eeprom_index - (EEPROM_OFFSET), " Size: ", datasize());
@@ -2967,7 +3046,11 @@ void MarlinSettings::reset() {
   //
   // Global Leveling
   //
+<<<<<<< HEAD
   TERN_(ENABLE_LEVELING_FADE_HEIGHT, new_z_fade_height = (DEFAULT_LEVELING_FADE_HEIGHT));
+=======
+  TERN_(ENABLE_LEVELING_FADE_HEIGHT, new_z_fade_height = DEFAULT_LEVELING_FADE_HEIGHT);
+>>>>>>> 1775bfc02e (add mingda files)
   TERN_(HAS_LEVELING, reset_bed_level());
 
   //
@@ -3305,6 +3388,7 @@ void MarlinSettings::reset() {
   #endif
 
   //
+<<<<<<< HEAD
   // Fan tachometer check
   //
   TERN_(HAS_FANCHECK, fan_check.enabled = true);
@@ -3351,6 +3435,26 @@ void MarlinSettings::reset() {
       #endif
       thermalManager.temp_hotend[e].constants.filament_heat_capacity_permm = _filament_heat_capacity_permm[e];
     }
+=======
+  // Preheat
+  //
+  uint8_t phi=0;uint8_t phj=0;
+  for(phi=0;phi<THE_MATERIAL_NUM;phi++)
+    for(phj=0;phj<2;phj++)
+      PreheatTemp[phi][phj] = originalPreheatTemp[phi][phj];
+
+  //
+  // Leveling Offset
+  //
+  TERN_(LEVELING_OFFSET, LevelingOffset = LODEVA;)
+
+  //
+  // BABYSTEPPING
+  //
+  #if ENABLED(BABYSTEPPING)
+    // babystep.axis_total[BS_TOTAL_IND(Z_AXIS)] = 0;
+    babystep_value = 0.0f;
+>>>>>>> 1775bfc02e (add mingda files)
   #endif
 
   postprocess();
@@ -3645,10 +3749,58 @@ void MarlinSettings::reset() {
 
     TERN_(HAS_MULTI_LANGUAGE, gcode.M414_report(forReplay));
 
+<<<<<<< HEAD
     //
     // Model predictive control
     //
     TERN_(MPCTEMP, gcode.M306_report(forReplay));
+=======
+    #if ENABLED(BACKLASH_GCODE)
+      CONFIG_ECHO_HEADING("Backlash compensation:");
+      CONFIG_ECHO_START();
+      SERIAL_ECHOLNPAIR_P(
+          PSTR("  M425 F"), backlash.get_correction()
+        , SP_X_STR, LINEAR_UNIT(backlash.distance_mm.x)
+        , SP_Y_STR, LINEAR_UNIT(backlash.distance_mm.y)
+        , SP_Z_STR, LINEAR_UNIT(backlash.distance_mm.z)
+        #ifdef BACKLASH_SMOOTHING_MM
+          , PSTR(" S"), LINEAR_UNIT(backlash.smoothing_mm)
+        #endif
+      );
+    #endif
+
+    #if HAS_FILAMENT_SENSOR
+      CONFIG_ECHO_HEADING("Filament runout sensor:");
+      CONFIG_ECHO_START();
+      SERIAL_ECHOLNPAIR(
+        "  M412 S", int(runout.enabled)
+        #if HAS_FILAMENT_RUNOUT_DISTANCE
+          , " D", LINEAR_UNIT(runout.runout_distance())
+        #endif
+      );
+    #endif
+
+    //
+    // Preheat
+    //
+    CONFIG_ECHO_HEADING("preheat:");CONFIG_ECHO_START();
+    SERIAL_ECHOLNPAIR("  PLA:",PreheatTemp[0][0], ",", PreheatTemp[0][1]);
+    SERIAL_ECHOLNPAIR("       ABS:",PreheatTemp[1][0], ",", PreheatTemp[1][1]);
+    SERIAL_ECHOLNPAIR("       TPU:",PreheatTemp[2][0], ",", PreheatTemp[2][1]);
+
+    CONFIG_ECHO_HEADING("The Leveling Offset:");
+    CONFIG_ECHO_START();
+    TERN_(LEVELING_OFFSET, SERIAL_ECHOLNPAIR("  Z: ", LevelingOffset);)
+
+    //
+    // Babystep
+    //
+    #if ENABLED(BABYSTEPPING)
+      // babystep.axis_total[BS_TOTAL_IND(Z_AXIS)] = 0;
+      SERIAL_ECHOLNPAIR("The babystep value: ", babystep_value);
+    #endif
+
+>>>>>>> 1775bfc02e (add mingda files)
   }
 
 #endif // !DISABLE_M503

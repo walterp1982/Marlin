@@ -23,8 +23,19 @@
 #include "serial.h"
 #include "../inc/MarlinConfig.h"
 
+<<<<<<< HEAD
 #if HAS_ETHERNET
   #include "../feature/ethernet.h"
+=======
+uint8_t marlin_debug_flags = MARLIN_DEBUG_NONE;
+// uint8_t marlin_debug_flags = MARLIN_DEBUG_LEVELING;
+
+static PGMSTR(errormagic, "Error:");
+static PGMSTR(echomagic, "echo:");
+
+#if HAS_MULTI_SERIAL
+  int8_t serial_port_index = 0;
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 uint8_t marlin_debug_flags = MARLIN_DEBUG_NONE;
@@ -71,6 +82,18 @@ MAP(_N_LBL, LOGICAL_AXIS_NAMES); MAP(_SP_N_LBL, LOGICAL_AXIS_NAMES);
 void serial_print_P(PGM_P str) {
   while (const char c = pgm_read_byte(str++)) SERIAL_CHAR(c);
 }
+<<<<<<< HEAD
+=======
+void send_hexPGM(PGM_P str, int len){
+  char c;
+  while(len--){
+    c = pgm_read_byte(str++);
+    SERIAL_CHAR(c);
+  }
+}
+void serial_echo_start()  { serialprintPGM(echomagic); }
+void serial_error_start() { serialprintPGM(errormagic); }
+>>>>>>> 1775bfc02e (add mingda files)
 
 void serial_echo_start()  { serial_print(F("echo:")); }
 void serial_error_start() { serial_print(F("Error:")); }

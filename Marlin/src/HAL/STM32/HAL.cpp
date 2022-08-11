@@ -75,7 +75,7 @@ void MarlinHAL::init() {
   #endif
 
   #if PIN_EXISTS(LED)
-    OUT_WRITE(LED_PIN, LOW);
+    OUT_WRITE(LED_PIN, LOW); //test pass
   #endif
 
   #if ENABLED(SRAM_EEPROM_EMULATION)
@@ -167,8 +167,25 @@ extern "C" {
   extern unsigned int _ebss; // end of bss section
 }
 
+<<<<<<< HEAD
 // Reset the system to initiate a firmware flash
 WEAK void flashFirmware(const int16_t) { hal.reboot(); }
+=======
+// ------------------------
+// ADC
+// ------------------------
+
+// TODO: Make sure this doesn't cause any delay
+void HAL_adc_start_conversion(const uint8_t adc_pin) {
+
+    HAL_adc_result = analogRead(adc_pin);
+
+}
+uint16_t HAL_adc_get_result() { return HAL_adc_result; }
+
+// Reset the system (to initiate a firmware flash)
+void flashFirmware(const int16_t) { NVIC_SystemReset(); }
+>>>>>>> 1775bfc02e (add mingda files)
 
 // Maple Compatibility
 volatile uint32_t systick_uptime_millis = 0;
@@ -179,4 +196,9 @@ void HAL_SYSTICK_Callback() {
   if (systick_user_callback) systick_user_callback();
 }
 
+<<<<<<< HEAD
 #endif // HAL_STM32
+=======
+
+#endif // ARDUINO_ARCH_STM32 && !STM32GENERIC
+>>>>>>> 1775bfc02e (add mingda files)

@@ -20,6 +20,8 @@
  *
  */
 #pragma once
+#define EEPROM_VERSION "V23"
+#define EEPROM_OFFSET 100
 
 //
 // settings.cpp - Settings and EEPROM storage
@@ -30,6 +32,8 @@
 #if ENABLED(EEPROM_SETTINGS)
   #include "../HAL/shared/eeprom_api.h"
 #endif
+
+void setCurrentOffset(float offset);
 
 class MarlinSettings {
   public:

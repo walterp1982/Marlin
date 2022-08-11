@@ -28,7 +28,15 @@
  *  - https://github.com/grbl/grbl
  */
 
+/********************head*************************/
 #include "MarlinCore.h"
+<<<<<<< HEAD
+=======
+#include "module/settings.h"
+#if ENABLED(MARLIN_DEV_MODE)
+  #warning "WARNING! Disable MARLIN_DEV_MODE for the final build!"
+#endif
+>>>>>>> 1775bfc02e (add mingda files)
 
 #include "HAL/shared/Delay.h"
 #include "HAL/shared/esp_wifi.h"
@@ -113,7 +121,7 @@
   #include "feature/max7219.h"
 #endif
 
-#if HAS_COLOR_LEDS
+#if HAS_COLOR_LEDS || ENABLED(R_B_LED) || ENABLED(WS2812_LED)
   #include "feature/leds/leds.h"
 #endif
 
@@ -232,6 +240,7 @@
   #include "feature/password/password.h"
 #endif
 
+<<<<<<< HEAD
 #if ENABLED(DGUS_LCD_UI_MKS)
   #include "lcd/extui/dgus/DGUSScreenHandler.h"
 #endif
@@ -252,6 +261,27 @@
   #include "tests/marlin_tests.h"
 #endif
 
+=======
+#ifdef HAS_UDISK
+
+  #include "lcd/extui/lib/tsc/Menu/PrintUdisk.h"
+  #include "ff.h"
+  #include "udisk/udiskPrint.h"
+
+  #ifdef USE_GD32
+    #include "gd32_usb.h"
+  #else
+    #include "stm32_usb.h"
+  #endif
+
+#endif
+
+
+
+
+/********************parameter***************************/
+PGMSTR(NUL_STR, "");
+>>>>>>> 1775bfc02e (add mingda files)
 PGMSTR(M112_KILL_STR, "M112 Shutdown");
 
 MarlinState marlin_state = MF_INITIALIZING;
@@ -299,11 +329,15 @@ bool wait_for_heatup = true;
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wnarrowing"
 
+<<<<<<< HEAD
 #ifndef RUNTIME_ONLY_ANALOG_TO_DIGITAL
   template <pin_t ...D>
   constexpr pin_t OnlyPins<_SP_END, D...>::table[sizeof...(D)];
 #endif
 
+=======
+//if the pin is protected, return true; else return false
+>>>>>>> 1775bfc02e (add mingda files)
 bool pin_is_protected(const pin_t pin) {
   #ifdef RUNTIME_ONLY_ANALOG_TO_DIGITAL
     static const pin_t sensitive_pins[] PROGMEM = { SENSITIVE_PINS };
@@ -320,9 +354,98 @@ bool pin_is_protected(const pin_t pin) {
 }
 
 #pragma GCC diagnostic pop
+<<<<<<< HEAD
 
 bool printer_busy() {
   return planner.movesplanned() || printingIsActive();
+=======
+//if protected pin error printf
+void protected_pin_err() {
+  SERIAL_ERROR_MSG(STR_ERR_PROTECTED_PIN);
+}
+// 快速停下电机
+void quickstop_stepper() {
+  planner.quick_stop();
+  planner.synchronize();
+  set_current_from_steppers_for_axis(ALL_AXES);
+  sync_plan_position();
+}
+//enable the E motor
+void enable_e_steppers() {
+  #define _ENA_E(N) ENABLE_AXIS_E##N();
+  REPEAT(E_STEPPERS, _ENA_E)
+}
+//enable all motors
+void enable_all_steppers() {
+  TERN_(AUTO_POWER_CONTROL, powerManager.power_on());
+  ENABLE_AXIS_X();  // enable X motor, write PD3 Low
+  ENABLE_AXIS_Y();  // enable Y motor, write PD3 Low
+  ENABLE_AXIS_Z();  // enable Z motor, write PD3 Low
+  enable_e_steppers();
+}
+
+void disable_e_steppers() {
+  #define _DIS_E(N) DISABLE_AXIS_E##N();
+  REPEAT(E_STEPPERS, _DIS_E)
+}
+
+void disable_e_stepper(const uint8_t e) {
+  #define _CASE_DIS_E(N) case N: DISABLE_AXIS_E##N(); break;
+  switch (e) {
+    REPEAT(EXTRUDERS, _CASE_DIS_E)
+  }
+}
+
+void disable_all_steppers() {
+  DISABLE_AXIS_Z();
+  DISABLE_AXIS_Y();
+  DISABLE_AXIS_X();
+  disable_e_steppers();
+}
+
+#if ENABLED(G29_RETRY_AND_RECOVER)
+
+  void event_probe_failure() {
+    #ifdef ACTION_ON_G29_FAILURE
+      host_action(PSTR(ACTION_ON_G29_FAILURE));
+    #endif
+    #ifdef G29_FAILURE_COMMANDS
+      gcode.process_subcommands_now_P(PSTR(G29_FAILURE_COMMANDS));
+    #endif
+    #if ENABLED(G29_HALT_ON_FAILURE)
+      #ifdef ACTION_ON_CANCEL
+        host_action_cancel();
+      #endif
+      kill(GET_TEXT(MSG_LCD_PROBING_FAILED));
+    #endif
+  }
+
+  void event_probe_recover() {
+    TERN_(HOST_PROMPT_SUPPORT, host_prompt_do(PROMPT_INFO, PSTR("G29 Retrying"), DISMISS_STR));
+    #ifdef ACTION_ON_G29_RECOVER
+      host_action(PSTR(ACTION_ON_G29_RECOVER));
+    #endif
+    #ifdef G29_RECOVER_COMMANDS
+      gcode.process_subcommands_now_P(PSTR(G29_RECOVER_COMMANDS));
+    #endif
+  }
+
+#endif
+
+#if ENABLED(ADVANCED_PAUSE_FEATURE)
+  #include "feature/pause.h"
+#else
+  constexpr bool did_pause_print = false;
+#endif
+
+#include "rtt.h"
+
+/**
+ * A Print Job exists when the timer is running or SD printing
+ */
+bool printJobOngoing() {
+  return print_job_timer.isRunning() || IS_SD_PRINTING();
+>>>>>>> 1775bfc02e (add mingda files)
 }
 
 /**
@@ -355,8 +478,21 @@ void startOrResumeJob() {
 }
 
 #if ENABLED(SDSUPPORT)
+  
+  #if ENABLED(USART_LCD)
+    // 串口屏切换到上打印列表界面
+    void back_printlist(void){
+      char send_str[10] = {0x5A, 0xA5, 0x07, 0x82, 0x00, 0x84, 0x5A, 0x01, 0x00, 0x0E};
+      char send_str2[8] = {0x5A, 0xA5, 0x05, 0x82, 0x2B, 0xBE, 0x00, 0x00};
+      send_hexPGM(send_str2, 8);
+      delay(20);
+      send_hexPGM(send_str, 10);
+      // delay(50);
+    }
+  #endif
 
   inline void abortSDPrinting() {
+<<<<<<< HEAD
     IF_DISABLED(NO_SD_AUTOSTART, card.autofile_cancel());
     card.abortFilePrintNow(TERN_(SD_RESORT, true));
 
@@ -375,9 +511,45 @@ void startOrResumeJob() {
 
     #ifdef EVENT_GCODE_SD_ABORT
       queue.inject(F(EVENT_GCODE_SD_ABORT));
+=======
+    float rz;
+   #ifdef HAS_UDISK
+    if(udisk.isUdiskPrint())
+      udisk.abortUdiskPrint(&udisk_fp);
+   #endif
+    if(card.isFileOpen())
+      card.endFilePrint(TERN_(SD_RESORT, true));
+    SERIAL_ECHOLNPAIR("close end");
+    queue.clear();        // 清空队列
+    quickstop_stepper();  // 快速停下电机
+    print_job_timer.stop();// 打印定时器停止
+    #if DISABLED(SD_ABORT_NO_COOLDOWN)
+      thermalManager.disable_all_heaters(); // 关闭加热
+    #endif
+    #if !HAS_CUTTER
+      thermalManager.zero_fan_speeds();     // 关闭风扇
+    #else
+      cutter.kill();              // Full cutter shutdown including ISR control
+    #endif
+    wait_for_heatup = false;
+    TERN_(POWER_LOSS_RECOVERY, recovery.purge()); // 删除断电续打的文件
+
+    rz = current_position.z+5;
+    do_blocking_move_to_z((rz>Z_MAX_POS ? Z_MAX_POS : rz), 3);  //z轴上升5mm，速度3mm/s，限制到Z轴最大位置
+    #ifdef EVENT_GCODE_SD_ABORT
+      queue.inject_P(PSTR(EVENT_GCODE_SD_ABORT)); // 发送“G28 XY\n”命令。复位XY轴
+>>>>>>> 1775bfc02e (add mingda files)
     #endif
 
+    card.flag.abort_sd_printing = false;  // 结束停止打印状态
+    TERN_( HAS_UDISK, UDiskPrint = UDiskStopPrint = UDiskPausePrint = false;)
+
     TERN_(PASSWORD_AFTER_SD_PRINT_ABORT, password.lock_machine());
+
+   #if ENABLED(USART_LCD)
+    // 串口屏切换到上一个界面
+    back_printlist();
+   #endif
   }
 
   inline void finishSDPrinting() {
@@ -386,6 +558,11 @@ void startOrResumeJob() {
       TERN_(PASSWORD_AFTER_SD_PRINT_END, password.lock_machine());
       TERN_(DGUS_LCD_UI_MKS, ScreenHandler.SDPrintingFinished());
     }
+    // if(auto_close_flag == 2)  auto_close_flag = 1;
+    #if ENABLED(USART_LCD)
+      // 串口屏切换到上一个界面
+      back_printlist();
+    #endif
   }
 
 #endif // SDSUPPORT
@@ -773,6 +950,7 @@ inline void manage_inactivity(const bool no_stepper_sleep=false) {
  *  - Update the Průša MMU2
  *  - Handle Joystick jogging
  */
+<<<<<<< HEAD
 void idle(bool no_stepper_sleep/*=false*/) {
   #ifdef MAX7219_DEBUG_PROFILE
     CodeProfiler idle_profiler;
@@ -786,6 +964,10 @@ void idle(bool no_stepper_sleep/*=false*/) {
   // Bed Distance Sensor task
   TERN_(BD_SENSOR, bdl.process());
 
+=======
+void idle(TERN_(ADVANCED_PAUSE_FEATURE, bool no_stepper_sleep/*=false*/)) {
+  
+>>>>>>> 1775bfc02e (add mingda files)
   // Core Marlin activities
   manage_inactivity(no_stepper_sleep);
 
@@ -827,6 +1009,23 @@ void idle(bool no_stepper_sleep/*=false*/) {
   // Handle SD Card insert / remove
   TERN_(SDSUPPORT, card.manage_media());
 
+  // UDISK
+  #ifdef HAS_UDISK
+    #if ENABLED(USE_GD32)
+      gd32_usb_loop();
+    #else
+      MX_USB_HOST_Process();
+      // MSC_MenuProcess();
+    #endif
+  #endif
+
+  // 检测断电文件，sd卡使能内也有，因此这是U盘专用
+ #ifdef HAS_UDISK
+  if(udiskMounted && !UDiskPrint){
+    TERN_(POWER_LOSS_RECOVERY, recovery.check_u());
+  }
+ #endif
+
   // Handle USB Flash Drive insert / remove
   TERN_(USB_FLASH_DRIVE_SUPPORT, card.diskIODriver()->idle());
 
@@ -841,6 +1040,11 @@ void idle(bool no_stepper_sleep/*=false*/) {
 
   // Handle UI input / draw events
   TERN(DWIN_CREALITY_LCD, DWIN_Update(), ui.update());
+
+  // updata dwin lcd
+  #if ENABLED(USART_LCD)
+    Updata_usart_lcd();
+  #endif
 
   // Run i2c Position Encoders
   #if ENABLED(I2C_POSITION_ENCODERS)
@@ -859,11 +1063,17 @@ void idle(bool no_stepper_sleep/*=false*/) {
   // Auto-report Temperatures / SD Status
   #if HAS_AUTO_REPORTING
     if (!gcode.autoreport_paused) {
+<<<<<<< HEAD
       TERN_(AUTO_REPORT_TEMPERATURES, thermalManager.auto_reporter.tick());
       TERN_(AUTO_REPORT_FANS, fan_check.auto_reporter.tick());
       TERN_(AUTO_REPORT_SD_STATUS, card.auto_reporter.tick());
       TERN_(AUTO_REPORT_POSITION, position_auto_reporter.tick());
       TERN_(BUFFER_MONITORING, queue.auto_report_buffer_statistics());
+=======
+      TERN_(AUTO_REPORT_TEMPERATURES, thermalManager.auto_report_temperatures());
+      TERN_(AUTO_REPORT_SD_STATUS, card.auto_report_sd_status());
+      TERN_(AUTO_REPORT_POSITION, position_auto_reporter.tick());
+>>>>>>> 1775bfc02e (add mingda files)
     }
   #endif
 
@@ -1133,6 +1343,7 @@ inline void tmc_standby_setup() {
  *  - Open Touch Screen Calibration screen, if not calibrated
  *  - Set Marlin to RUNNING State
  */
+void LCD_Setup();
 void setup() {
   #ifdef FASTIO_INIT
     FASTIO_INIT();
@@ -1158,7 +1369,8 @@ void setup() {
   #else
     #define SETUP_LOG(...) NOOP
   #endif
-  #define SETUP_RUN(C) do{ SETUP_LOG(STRINGIFY(C)); C; }while(0)
+  // #define SETUP_RUN(C) do{ SETUP_LOG(STRINGIFY(C)); C; }while(0)
+  #define SETUP_RUN(C) do{ C; }while(0)
 
   MYSERIAL1.begin(BAUDRATE);
   millis_t serial_connect_timeout = millis() + 1000UL;
@@ -1192,6 +1404,7 @@ void setup() {
     #endif
   #endif
 
+<<<<<<< HEAD
   #if ENABLED(FREEZE_FEATURE)
     SETUP_LOG("FREEZE_PIN");
     #if FREEZE_STATE
@@ -1232,6 +1445,43 @@ void setup() {
   #endif
   #if TEMP_SENSOR_IS_MAX_TC(1) || (TEMP_SENSOR_IS_MAX_TC(REDUNDANT) && REDUNDANT_TEMP_MATCH(SOURCE, E1))
     OUT_WRITE(TEMP_1_CS_PIN, HIGH);
+=======
+  rtt.print("marlin start...");
+
+  MYSERIAL0.begin(BAUDRATE);
+  uint32_t serial_connect_timeout = millis() + 1000UL;
+  while (!MYSERIAL0 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
+  #if HAS_MULTI_SERIAL
+    MYSERIAL1.begin(BAUDRATE);
+    serial_connect_timeout = millis() + 1000UL;
+    while (!MYSERIAL1 && PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
+  #endif
+  SERIAL_ECHO_MSG("start");
+
+  #if BOTH(HAS_TFT_LVGL_UI, USE_WIFI_FUNCTION)
+    mks_esp_wifi_init();
+    WIFISERIAL.begin(WIFI_BAUDRATE);
+    serial_connect_timeout = millis() + 1000UL;
+    while (/*!WIFISERIAL && */PENDING(millis(), serial_connect_timeout)) { /*nada*/ }
+  #endif
+
+  SETUP_RUN(HAL_init());
+  LCD_Setup();
+
+ #ifdef HAS_UDISK
+  #if ENABLED(USE_GD32)
+    udisk.InitUdiskPin();
+    // gd32_usb_device_cdc_init();
+    gd32_usb_host_msc_init();
+  #else
+    udisk.InitUdiskPin();
+    MX_USB_HOST_Init();
+  #endif
+ #endif
+  
+  #if HAS_L64XX
+    SETUP_RUN(L64xxManager.init());  // Set up SPI, init drivers
+>>>>>>> 1775bfc02e (add mingda files)
   #endif
 
   #if ENABLED(DUET_SMART_EFFECTOR) && PIN_EXISTS(SMART_EFFECTOR_MOD)
@@ -1304,6 +1554,12 @@ void setup() {
   #if ENABLED(NEOPIXEL2_SEPARATE)
     SETUP_RUN(leds2.setup());
   #endif
+  #ifdef R_B_LED
+    SETUP_RUN(led3.setup());
+  #endif
+  #ifdef WS2812_LED
+    SETUP_RUN(led4.setup());
+  #endif
 
   #if ENABLED(USE_CONTROLLER_FAN)     // Set up fan controller to initialize also the default configurations.
     SETUP_RUN(controllerFan.setup());
@@ -1328,9 +1584,10 @@ void setup() {
   #if BOTH(SDSUPPORT, SDCARD_EEPROM_EMULATION)
     SETUP_RUN(card.mount());          // Mount media with settings before first_load
   #endif
-
+  
   SETUP_RUN(settings.first_load());   // Load data from EEPROM if available (or use defaults)
                                       // This also updates variables in the planner, elsewhere
+<<<<<<< HEAD
 
   #if BOTH(HAS_WIRED_LCD, SHOW_BOOTSCREEN)
     SETUP_RUN(ui.show_bootscreen());
@@ -1347,6 +1604,20 @@ void setup() {
 
   #if HAS_TOUCH_BUTTONS
     SETUP_RUN(touchBt.init());
+=======
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR) && ENABLED(LEVELING_OFFSET)
+    oldLevelingOffset = LevelingOffset;
+    if((babystep_value>0.0001) || (babystep_value<-0.0001)){
+      setLevelingOffset(babystep_value);
+      babystep_value = 0.0f;
+    }
+    saveOffset();           // 更新调平数据
+  #endif
+  // set_bed_leveling_enabled();
+  
+  #if HAS_TOUCH_XPT2046
+    SETUP_RUN(touch.init());
+>>>>>>> 1775bfc02e (add mingda files)
   #endif
 
   TERN_(HAS_M206_COMMAND, current_position += home_offset); // Init current position based on home_offset
@@ -1374,7 +1645,7 @@ void setup() {
   #endif
 
   #if HAS_PHOTOGRAPH
-    OUT_WRITE(PHOTOGRAPH_PIN, LOW);
+    OUT_WRITE(PHOTOGRAPH_PIN, !PHOTO_PIN_ACTIVE_STATE);
   #endif
 
   #if HAS_CUTTER
@@ -1561,6 +1832,11 @@ void setup() {
     SETUP_RUN(est_init());
   #endif
 
+  #if ENABLED(POWER_LOSS_RECOVERY)
+    gcode.process_subcommands_now("M413 S1");   // 开启断电续打
+    SETUP_RUN(recovery.check());
+  #endif
+
   #if ENABLED(USE_WATCHDOG)
     SETUP_RUN(hal.watchdog_init());   // Reinit watchdog after hal.get_reset_source call
   #endif
@@ -1578,8 +1854,14 @@ void setup() {
     SETUP_RUN(hostui.prompt_end());
   #endif
 
+<<<<<<< HEAD
   #if HAS_DRIVER_SAFE_POWER_PROTECT
     SETUP_RUN(stepper_driver_backward_report());
+=======
+  #if HAS_TRINAMIC_CONFIG && DISABLED(PSU_DEFAULT_OFF)
+    // delay(200);
+    SETUP_RUN(test_tmc_connection(true, true, true, true));
+>>>>>>> 1775bfc02e (add mingda files)
   #endif
 
   #if HAS_PRUSA_MMU2
@@ -1644,10 +1926,48 @@ void setup() {
   #endif
 
   marlin_state = MF_RUNNING;
+  
+ #if 0//ENABLED(LEVELING_OFFSET)
+  oldLevelingOffset = LevelingOffset;
+
+  setCurrentOffset(-0.2);//init z probe offset
+  settings.save();
+
+  oldLevelingOffset = LevelingOffset;
+ #endif
+  // old_z_offset = LevelingOffset;
+  stop_home = false;  // 关闭停止复位标志，防干扰
 
   SETUP_LOG("setup() completed.");
 
+<<<<<<< HEAD
   TERN_(MARLIN_TEST_BUILD, runStartupTests());
+=======
+  #if ENABLED(USART_LCD)
+    char first_open[] = {0x5A, 0xA5, 0x07, 0x82, 0x00, 0x84, 0x5A, 0x01, 0x00, 0x01};
+    char first_AHot[] = {0x5A, 0xA5, 0x05, 0x82, 0x10, 0xF4, 0x00, 0x00};
+    char first_ABed[] = {0x5A, 0xA5, 0x05, 0x82, 0x10, 0xFA, 0x00, 0x00};
+    char first_X[] = {0x5A, 0xA5, 0x09, 0x82, 0x2B, 0xC0, 0x30, 0x2E, 0x30, 0x00, 0x00, 0x00};
+    char first_Y[] = {0x5A, 0xA5, 0x09, 0x82, 0x2C, 0xD0, 0x30, 0x2E, 0x30, 0x00, 0x00, 0x00};
+    char first_Z[] = {0x5A, 0xA5, 0x09, 0x82, 0x2D, 0xE0, 0x30, 0x2E, 0x30, 0x00, 0x00, 0x00};
+    char first_E[] = {0x5A, 0xA5, 0x05, 0x82, 0x19, 0x0A, 0x00, 0x00};
+    send_hexPGM(first_open, 10);
+    delay(5);
+    send_hexPGM(first_AHot, 8);
+    delay(5);
+    send_hexPGM(first_ABed, 8);
+    delay(5);
+    send_hexPGM(first_X, 12);
+    delay(5);
+    send_hexPGM(first_Y, 12);
+    delay(5);
+    send_hexPGM(first_Z, 12);
+    delay(5);
+    send_hexPGM(first_E, 8);
+  #endif
+
+  SERIAL_ECHO_MSG("Init end");
+>>>>>>> 1775bfc02e (add mingda files)
 }
 
 /**
@@ -1667,9 +1987,42 @@ void loop() {
   do {
     idle();
 
+    // MYSERIAL1.write("fuck usb", 9);
+    // TERN_(USE_WATCHDOG, HAL_watchdog_refresh());// thermalmanager will feed dog if normal.
+
     #if ENABLED(SDSUPPORT)
+<<<<<<< HEAD
       if (card.flag.abort_sd_printing) abortSDPrinting();
+=======
+      card.checkautostart();
+      if (card.flag.abort_sd_printing) abortSDPrinting();     // 如果停止SD卡打印标志为真，就停止SD卡打印
+>>>>>>> 1775bfc02e (add mingda files)
       if (marlin_state == MF_SD_COMPLETE) finishSDPrinting();
+    #endif
+
+    #if 0
+      if(UDiskPrint && !UDiskPausePrint && queue.length <= 3){
+        static TCHAR rbuf[128] = {0};
+        static int rres = 0;
+
+        rres = f_gets_p(rbuf, sizeof(rbuf), &udisk_fp);
+        if(rres == 0){
+          UDiskPrint = false;
+          UDiskPrintFinish = true;
+          f_close(&udisk_fp);
+          finishSDPrinting();
+          SERIAL_ECHOLNPAIR("Finsish!!!");
+        }
+        else if(rbuf[0]=='G' || rbuf[0]=='M'){
+          SERIAL_ECHOLNPAIR("the gcode:", rbuf);
+          queue.enqueue_now_P((const char *)rbuf);
+        }
+        UDiskPrintSize += rres;
+      }
+      // if(UDiskStopPrint){
+      //   UDiskStopPrint = false;
+      //   abortSDPrinting();
+      // }
     #endif
 
     queue.advance();

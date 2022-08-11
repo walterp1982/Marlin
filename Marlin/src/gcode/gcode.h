@@ -792,6 +792,7 @@ private:
     static void M193();
   #endif
 
+<<<<<<< HEAD
   #if HAS_PREHEAT
     static void M145();
     static void M145_report(const bool forReplay=true);
@@ -810,6 +811,13 @@ private:
     static void M154();
   #endif
 
+=======
+  TERN_(HAS_COLOR_LEDS, static void M150());
+  
+  #if ENABLED(AUTO_REPORT_POSITION)
+    static void M154();
+  #endif
+>>>>>>> 1775bfc02e (add mingda files)
   #if BOTH(AUTO_REPORT_TEMPERATURES, HAS_TEMP_SENSOR)
     static void M155();
   #endif
@@ -1216,9 +1224,21 @@ private:
     static void M423_report(const bool forReplay=true);
   #endif
 
+<<<<<<< HEAD
   #if ENABLED(SDSUPPORT)
     static void M1001();
   #endif
+=======
+  #if ENABLED(USART_LCD)
+    static void M1107();
+    static void M1108();
+    static void M1109();
+    static void M1110();
+    static void M1111();
+  #endif
+
+  TERN_(MAX7219_GCODE, static void M7219());
+>>>>>>> 1775bfc02e (add mingda files)
 
   #if ENABLED(DGUS_LCD_UI_MKS)
     static void M1002();

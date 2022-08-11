@@ -139,15 +139,37 @@ void GcodeSuite::M600() {
     park_point += hotend_offset[active_extruder];
   #endif
 
+<<<<<<< HEAD
   // Unload filament
   // For MMU2, when enabled, reset retract value so it doesn't mess with MMU filament handling
   const float unload_length = standardM600 ? -ABS(parser.axisunitsval('U', E_AXIS, fc_settings[active_extruder].unload_length)) : 0.5f;
+=======
+  #if ENABLED(MMU2_MENUS)
+    // For MMU2 reset retract and load/unload values so they don't mess with MMU filament handling
+    constexpr float unload_length = 0.5f,
+                    slow_load_length = 0.0f,
+                    fast_load_length = 0.0f;
+  #else
+    // // Unload filament
+    // const float unload_length = -ABS(parser.seen('U') ? parser.value_axis_units(E_AXIS)
+    //                                                   : fc_settings[active_extruder].unload_length);
+     const float unload_length = 0;   // D2_pro不会退料
+
+    // Slow load filament
+    constexpr float slow_load_length = FILAMENT_CHANGE_SLOW_LOAD_LENGTH;
+
+    // Fast load filament
+    const float fast_load_length = ABS(parser.seen('L') ? parser.value_axis_units(E_AXIS)
+                                                        : fc_settings[active_extruder].load_length);
+  #endif
+>>>>>>> 1775bfc02e (add mingda files)
 
   const int beep_count = parser.intval('B', -1
     #ifdef FILAMENT_CHANGE_ALERT_BEEPS
       + 1 + FILAMENT_CHANGE_ALERT_BEEPS
     #endif
   );
+<<<<<<< HEAD
 
   if (pause_print(retract, park_point, true, unload_length DXC_PASS)) {
     if (standardM600) {
@@ -167,6 +189,19 @@ void GcodeSuite::M600() {
         resume_print(0, 0, 0, beep_count, 0 DXC_PASS);
       #endif
     }
+=======
+  if (pause_print(retract, park_point, unload_length, true DXC_PASS)) {
+    #if ENABLED(MMU2_MENUS)
+      mmu2_M600();
+      resume_print(slow_load_length, fast_load_length, 0, beep_count DXC_PASS);
+    #else
+      SERIAL_ECHOLNPAIR("test:M600-2");
+      // wait_for_confirmation(true, beep_count DXC_PASS);
+      no_filament_carry_on_printf(true, beep_count DXC_PASS);
+      resume_print(slow_load_length, fast_load_length, ADVANCED_PAUSE_PURGE_LENGTH,
+                   beep_count, (parser.seenval('R') ? parser.value_celsius() : 0) DXC_PASS);
+    #endif
+>>>>>>> 1775bfc02e (add mingda files)
   }
 
   #if HAS_MULTI_EXTRUDER

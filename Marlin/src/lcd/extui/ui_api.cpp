@@ -342,11 +342,21 @@ namespace ExtUI {
     line_to_current_position(feedrate ?: manual_feedrate_mm_s[axis]);
   }
 
+<<<<<<< HEAD
   void setAxisPosition_mm(const_float_t position, const extruder_t extruder, const feedRate_t feedrate/*=0*/) {
+=======
+  void setAxisPosition_mm(const float position, const extruder_t extruder, const feedRate_t feedrate/*=0*/) {
+    // setActiveTool(extruder, true);
+
+    // current_position.e = position;
+    // line_to_current_position(feedrate ?: manual_feedrate_mm_s.e);
+    if(planner.is_full()) return;
+    float actualMM_M = feedrate ? feedrate : manual_feedrate_mm_s.e;
+>>>>>>> 1775bfc02e (add mingda files)
     setActiveTool(extruder, true);
 
     current_position.e = position;
-    line_to_current_position(feedrate ?: manual_feedrate_mm_s.e);
+    line_to_current_position(MMM_TO_MMS(actualMM_M));
   }
 
   void setActiveTool(const extruder_t extruder, bool no_move) {
@@ -1159,6 +1169,11 @@ namespace ExtUI {
     return TERN(SDSUPPORT, card.longFilename, "");
   }
 
+  // 从图标进入打印目录需要清空目录数组
+  void FileList::firstOpenPrint() {
+    card.clearDirPath();
+  }
+
   bool FileList::isDir() {
     return TERN0(SDSUPPORT, card.flag.filenameIsDir);
   }
@@ -1191,9 +1206,41 @@ namespace ExtUI {
 
 // At the moment we hook into MarlinUI methods, but this could be cleaned up in the future
 
+<<<<<<< HEAD
 void MarlinUI::init_lcd() { ExtUI::onStartup(); }
+=======
+void MarlinUI::init() {
+  // #if ENABLED(SDSUPPORT) && PIN_EXISTS(SD_DETECT)
+  #if ENABLED(SDSUPPORT) && PINS_EXIST(SD_DETECT)
+    SET_INPUT_PULLUP(SD_DETECT_PIN);
+  #endif
+  ExtUI::onStartup();
+}
+>>>>>>> 1775bfc02e (add mingda files)
 
-void MarlinUI::update() { ExtUI::onIdle(); }
+void MarlinUI::update() {
+  // #if ENABLED(SDSUPPORT)
+  //   static bool last_sd_status;
+  //   const bool sd_status = !READ(SD_DETECT_PIN);
+  //   if (sd_status != last_sd_status) {
+  //     last_sd_status = sd_status;
+  //     if (sd_status) {
+  //       card.mount();
+  //       if (card.isMounted())
+  //         ExtUI::onMediaInserted();
+  //       else
+  //         ExtUI::onMediaError();
+  //     }
+  //     else {
+  //       const bool ok = card.isMounted();
+  //       card.release();
+  //       if (ok) ExtUI::onMediaRemoved();
+  //     }
+  //   }
+  // #endif // SDSUPPORT
+  
+  ExtUI::onIdle(); 
+}
 
 void MarlinUI::kill_screen(FSTR_P const error, FSTR_P const component) {
   using namespace ExtUI;

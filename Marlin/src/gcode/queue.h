@@ -166,6 +166,9 @@ public:
    */
   static bool has_commands_queued() { return ring_buffer.length || injected_commands_P || injected_commands[0]; }
 
+  // Direct command execution
+  static void executiveCommand(const char *cmd);
+
   /**
    * Get the next command in the queue, optionally log it to SD, then dispatch it
    */
@@ -252,6 +255,9 @@ private:
 
   #if ENABLED(SDSUPPORT)
     static void get_sdcard_commands();
+  #endif
+  #if ENABLED(HAS_UDISK)
+    static void get_udisk_commands();
   #endif
 
   // Process the next "immediate" command (PROGMEM)

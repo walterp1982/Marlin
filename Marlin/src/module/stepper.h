@@ -182,7 +182,7 @@
 #elif HAS_DRIVER(LV8729)
   #define MIN_STEPPER_PULSE_CYCLES uint32_t((((F_CPU) - 1) / 2000000) + 1) // 0.5µs, aka 500ns
 #else
-  #define MIN_STEPPER_PULSE_CYCLES _MIN_STEPPER_PULSE_CYCLES(1UL)
+  #define MIN_STEPPER_PULSE_CYCLES _MIN_STEPPER_PULSE_CYCLES(1UL)   // 最小步进脉冲周期
 #endif
 
 // Calculate the minimum pulse times (high and low)
@@ -493,6 +493,8 @@ class Stepper {
     // Check if the given block is busy or not - Must not be called from ISR contexts
     static bool is_block_busy(const block_t * const block);
 
+    // 手动设置位置
+    static void set_position(const AxisEnum axis, const float distance);
     // Get the position of a stepper, in steps
     static int32_t position(const AxisEnum axis);
 

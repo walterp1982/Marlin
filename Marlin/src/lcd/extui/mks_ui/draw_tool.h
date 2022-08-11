@@ -28,6 +28,34 @@
 void lv_draw_tool();
 void lv_clear_tool();
 
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/draw_tool.h
 #ifdef __cplusplus
   } /* C-declarations for C++ */
 #endif
+=======
+  #include "../../inc/MarlinConfig.h"
+
+  #include "watchdog.h"
+  #include <IWatchdog.h>
+
+  void watchdog_init() {
+    #if DISABLED(DISABLE_WATCHDOG_INIT)
+      IWatchdog.begin(4000000); // 4 sec timeout
+    #endif
+  }
+
+  void HAL_watchdog_refresh() {
+    IWatchdog.reload();
+    #if DISABLED(PINS_DEBUGGING) && PIN_EXISTS(LED)
+      TOGGLE(LED_PIN);  // heartbeat indicator
+    #endif
+  }
+
+  int c_func(){
+    HAL_watchdog_refresh();
+    return 1;
+  }
+
+#endif // USE_WATCHDOG
+#endif // ARDUINO_ARCH_STM32 && !STM32GENERIC
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/HAL/STM32/watchdog.cpp

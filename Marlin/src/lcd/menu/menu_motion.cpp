@@ -169,7 +169,11 @@ void _menu_move_distance(const AxisEnum axis, const screenFunc_t func, const int
 #if E_MANUAL
 
   inline void _goto_menu_move_distance_e() {
+<<<<<<< HEAD
     ui.goto_screen([]{ _menu_move_distance(E_AXIS, []{ lcd_move_e(); }); });
+=======
+    ui.goto_screen([]{ _menu_move_distance(E_AXIS, []{ lcd_move_e(TERN_(MULTI_MANUAL, active_extruder)); }, -1); });
+>>>>>>> 1775bfc02e (add mingda files)
   }
 
   inline void _menu_move_distance_e_maybe() {

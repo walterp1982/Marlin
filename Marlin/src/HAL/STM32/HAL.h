@@ -36,6 +36,7 @@
 
 #include <stdint.h>
 
+<<<<<<< HEAD
 //
 // Default graphical display delays
 //
@@ -43,6 +44,14 @@
 #define CPU_ST7920_DELAY_2  40
 #define CPU_ST7920_DELAY_3 340
 
+=======
+#ifdef USBCON
+  #include <USBSerial.h>
+#endif
+// #if defined (USE_GD32)
+  // #include "../../GD32_USBSerial.h"
+// #endif
+>>>>>>> 1775bfc02e (add mingda files)
 // ------------------------
 // Serial ports
 // ------------------------
@@ -151,6 +160,7 @@ typedef libServo hal_servo_t;
 
 // ------------------------
 // ADC
+<<<<<<< HEAD
 // ------------------------
 
 #ifdef ADC_RESOLUTION
@@ -160,6 +170,26 @@ typedef libServo hal_servo_t;
 #endif
 
 #define HAL_ADC_VREF         3.3
+=======
+//
+  #define HAL_ANALOG_SELECT(pin) pinMode(pin, INPUT)
+
+
+#define HAL_ADC_VREF        3.3
+#define HAL_ADC_RESOLUTION  ADC_RESOLUTION
+#define HAL_START_ADC(pin)  HAL_adc_start_conversion(pin)
+#ifndef USE_GD32
+  #define HAL_READ_ADC()      (HAL_adc_result) //stm32.  adc cfg correct.
+#else
+  #define HAL_READ_ADC()      (HAL_adc_result>>2) //in GD32 ADC cfg 10, but read still 12.  
+#endif
+#define HAL_ADC_READY()     true
+
+inline void HAL_adc_init() {}
+void HAL_adc_start_conversion(const uint8_t adc_pin);
+
+uint16_t HAL_adc_get_result();
+>>>>>>> 1775bfc02e (add mingda files)
 
 //
 // Pin Mapping for M42, M43, M226
@@ -182,6 +212,7 @@ typedef void (*systickCallback_t)(void);
 void systick_attach_callback(systickCallback_t cb);
 void HAL_SYSTICK_Callback();
 
+<<<<<<< HEAD
 extern volatile uint32_t systick_uptime_millis;
 
 #define HAL_CAN_SET_PWM_FREQ   // This HAL supports PWM Frequency adjustment
@@ -279,3 +310,19 @@ public:
   static void set_pwm_frequency(const pin_t pin, const uint16_t f_desired);
 
 };
+=======
+/**
+ * set_pwm_frequency
+ *  Set the frequency of the timer corresponding to the provided pin
+ *  All Timer PWM pins run at the same frequency
+ */
+void set_pwm_frequency(const pin_t pin, int f_desired);
+
+/**
+ * set_pwm_duty
+ *  Set the PWM duty cycle of the provided pin to the provided value
+ *  Optionally allows inverting the duty cycle [default = false]
+ *  Optionally allows changing the maximum size of the provided value to enable finer PWM duty control [default = 255]
+ */
+void set_pwm_duty(const pin_t pin, const uint16_t v, const uint16_t v_size=255, const bool invert=false);
+>>>>>>> 1775bfc02e (add mingda files)

@@ -23,8 +23,13 @@
 
 #if BOTH(EXTUI_EXAMPLE, EXTENSIBLE_UI)
 
+<<<<<<< HEAD:Marlin/src/lcd/extui/example/example.cpp
 #include "../ui_api.h"
 
+=======
+#include "ui_api.h"
+#include "lib/tsc/TSC_Menu.h"
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/lcd/extui/example.cpp
 // To implement a new UI, complete the functions below and
 // read or update Marlin's state using the methods in the
 // ExtUI methods in "../ui_api.h"
@@ -45,11 +50,22 @@ namespace ExtUI {
      *   READ(pin)
      */
   }
+<<<<<<< HEAD:Marlin/src/lcd/extui/example/example.cpp
   void onIdle() {}
   void onPrinterKilled(FSTR_P const error, FSTR_P const component) {}
   void onMediaInserted() {}
   void onMediaError() {}
   void onMediaRemoved() {}
+=======
+  void onIdle() {
+    // LCD_init_Reg();
+    // menuUpdate();
+  }
+  void onPrinterKilled(PGM_P const error, PGM_P const component) {}
+  void onMediaInserted() {};
+  void onMediaError() {};
+  void onMediaRemoved() {};
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/lcd/extui/example.cpp
   void onPlayTone(const uint16_t frequency, const uint16_t duration) {}
   void onPrintTimerStarted() {}
   void onPrintTimerPaused() {}

@@ -557,6 +557,7 @@ void Stepper::disable_all_steppers() {
 
 /**
  * Set the stepper direction of each axis
+ * 设置各轴的步进方向
  *
  *   COREXY: X_AXIS=A_AXIS and Y_AXIS=B_AXIS
  *   COREXZ: X_AXIS=A_AXIS and Z_AXIS=C_AXIS
@@ -2448,6 +2449,7 @@ uint32_t Stepper::block_phase_isr() {
 #if ENABLED(LIN_ADVANCE)
 
   // Timer interrupt for E. LA_steps is set in the main routine
+<<<<<<< HEAD
   void Stepper::advance_isr() {
     // Apply Bresenham algorithm so that linear advance can piggy back on
     // the acceleration and speed values calculated in block_phase_isr().
@@ -2457,6 +2459,63 @@ uint32_t Stepper::block_phase_isr() {
       count_position.e += count_direction.e;
       la_advance_steps += count_direction.e;
       la_delta_error -= advance_divisor;
+=======
+  uint32_t Stepper::advance_isr() {
+    uint32_t interval;
+
+    if (LA_use_advance_lead) {
+      if (step_events_completed > decelerate_after && LA_current_adv_steps > LA_final_adv_steps) {
+        LA_steps--;
+        LA_current_adv_steps--;
+        interval = LA_isr_rate;
+      }
+      else if (step_events_completed < decelerate_after && LA_current_adv_steps < LA_max_adv_steps) {
+        LA_steps++;
+        LA_current_adv_steps++;
+        interval = LA_isr_rate;
+      }
+      else
+        interval = LA_isr_rate = LA_ADV_NEVER;
+    }
+    else
+      interval = LA_ADV_NEVER;
+
+    if (!LA_steps) return interval; // Leave pins alone if there are no steps!
+
+    DIR_WAIT_BEFORE();
+
+    #if ENABLED(MIXING_EXTRUDER)
+      // We don't know which steppers will be stepped because LA loop follows,
+      // with potentially multiple steps. Set all.
+      if (LA_steps > 0)
+        MIXER_STEPPER_LOOP(j) NORM_E_DIR(j);
+      else if (LA_steps < 0)
+        MIXER_STEPPER_LOOP(j) REV_E_DIR(j);
+    #else
+      if (LA_steps > 0)
+        NORM_E_DIR(stepper_extruder);
+      else if (LA_steps < 0)
+        REV_E_DIR(stepper_extruder);
+    #endif
+
+    DIR_WAIT_AFTER();
+
+    //const hal_timer_t added_step_ticks = hal_timer_t(ADDED_STEP_TICKS);
+
+    // Step E stepper if we have steps
+    #if ISR_MULTI_STEPS
+      bool firstStep = true;
+      USING_TIMED_PULSE();
+    #endif
+
+    while (LA_steps) {
+      #if ISR_MULTI_STEPS
+        if (firstStep)
+          firstStep = false;
+        else
+          AWAIT_LOW_PULSE();
+      #endif
+>>>>>>> 1775bfc02e (add mingda files)
 
       // Set the STEP pulse ON
       #if ENABLED(MIXING_EXTRUDER)
@@ -2838,7 +2897,15 @@ void Stepper::_set_position(const abce_long_t &spos) {
     count_position = spos;
   #endif
 }
-
+/**
+ * 设置轴的位置
+ * @param axis 需要设置的轴
+ * @param distance 需要设置的位置（步数）
+ * 
+ */
+void Stepper::set_position(const AxisEnum axis, const float distance){
+  count_position[axis] = distance;
+}
 /**
  * Get a stepper's position in steps.
  */
@@ -3099,7 +3166,26 @@ void Stepper::report_positions() {
       case Z_AXIS: {
 
         #if CORE_IS_XZ
+
           BABYSTEP_CORE(X, Z, BABYSTEP_INVERT_Z, direction, (CORESIGN(1)<0));
+
+          /*
+          const xy_byte_t old_dir = { _READ_DIR(X), _READ_DIR(Z) }; 
+          _ENABLE_AXIS(X); _ENABLE_AXIS(Z);                         
+          DIR_WAIT_BEFORE();                                        
+          _APPLY_DIR(X, _INVERT_DIR(X)^direction^BABYSTEP_INVERT_Z);                    
+          _APPLY_DIR(Z, _INVERT_DIR(Z)^direction^BABYSTEP_INVERT_Z^(CORESIGN(1)<0));                
+          DIR_WAIT_AFTER();                                         
+          _SAVE_START();                                            
+          _APPLY_STEP(X, !_INVERT_STEP_PIN(X), true);               
+          _APPLY_STEP(Z, !_INVERT_STEP_PIN(Z), true);               
+          _PULSE_WAIT();                                            
+          _APPLY_STEP(X, _INVERT_STEP_PIN(X), true);                
+          _APPLY_STEP(Z, _INVERT_STEP_PIN(Z), true);                
+          EXTRA_DIR_WAIT_BEFORE();                                  
+          _APPLY_DIR(X, old_dir.a); _APPLY_DIR(Z, old_dir.b);       
+          EXTRA_DIR_WAIT_AFTER();
+          */
         #elif CORE_IS_YZ
           BABYSTEP_CORE(Y, Z, BABYSTEP_INVERT_Z, direction, (CORESIGN(1)<0));
         #elif DISABLED(DELTA)

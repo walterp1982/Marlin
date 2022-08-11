@@ -25,7 +25,7 @@
  * Release version. Leave the Marlin version or apply a custom scheme.
  */
 #ifndef SHORT_BUILD_VERSION
-  #define SHORT_BUILD_VERSION "2.0.7.2"
+  #define SHORT_BUILD_VERSION   "1.6.6.5"
 #endif
 
 /**
@@ -42,7 +42,11 @@
  * version was tagged.
  */
 #ifndef STRING_DISTRIBUTION_DATE
+<<<<<<< HEAD
   #define STRING_DISTRIBUTION_DATE "2020-03-31"
+=======
+  #define STRING_DISTRIBUTION_DATE "2021-6-3"
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 /**
@@ -73,7 +77,11 @@
  * Define a generic printer name to be output to the LCD after booting Marlin.
  */
 #ifndef MACHINE_NAME
+ #ifdef OTHER_CUSTOM
   #define MACHINE_NAME "3D Printer"
+ #else
+  #define MACHINE_NAME "MingDa Magician"
+ #endif
 #endif
 
 /**

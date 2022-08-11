@@ -37,16 +37,23 @@
 #if ENABLED(MIXING_EXTRUDER)
   #include "../feature/mixing.h"
 #endif
+#ifdef HAS_UDISK
+  #include "ff.h"
+#endif
 
 #if !defined(POWER_LOSS_STATE) && PIN_EXISTS(POWER_LOSS)
   #define POWER_LOSS_STATE HIGH
 #endif
 
+<<<<<<< HEAD
 #ifndef POWER_LOSS_ZRAISE
   #define POWER_LOSS_ZRAISE 2
 #endif
 
 //#define DEBUG_POWER_LOSS_RECOVERY
+=======
+// #define DEBUG_POWER_LOSS_RECOVERY
+>>>>>>> 1775bfc02e (add mingda files)
 //#define SAVE_EACH_CMD_MODE
 //#define SAVE_INFO_INTERVAL_MS 0
 
@@ -58,6 +65,7 @@ typedef struct {
   uint16_t feedrate;
 
   float zraise;
+  float z_current_position; 
 
   // Repeat information
   #if ENABLED(GCODE_REPEAT_MARKERS)
@@ -137,6 +145,7 @@ typedef struct {
 class PrintJobRecovery {
   public:
     static const char filename[5];
+    static const char filename1[6];
 
     static SdFile file;
     static job_recovery_info_t info;
@@ -152,6 +161,7 @@ class PrintJobRecovery {
     static void init();
     static void prepare();
 
+<<<<<<< HEAD
     static void setup() {
       #if PIN_EXISTS(POWER_LOSS)
         #if ENABLED(POWER_LOSS_PULLUP)
@@ -163,6 +173,9 @@ class PrintJobRecovery {
         #endif
       #endif
     }
+=======
+    static /*inline*/ void setup();
+>>>>>>> 1775bfc02e (add mingda files)
 
     // Track each command's file offsets
     static uint32_t command_sdpos() { return sdpos[queue_index_r]; }
@@ -176,13 +189,19 @@ class PrintJobRecovery {
     static void open(const bool read) { card.openJobRecoveryFile(read); }
     static void close() { file.close(); }
 
+<<<<<<< HEAD
     static bool check();
+=======
+    static void check();
+    TERN_( HAS_UDISK, static void check_u();)
+>>>>>>> 1775bfc02e (add mingda files)
     static void resume();
     static void purge();
 
     static void cancel() { purge(); }
 
     static void load();
+<<<<<<< HEAD
     static void save(const bool force=ENABLED(SAVE_EACH_CMD_MODE), const float zraise=POWER_LOSS_ZRAISE, const bool raised=false);
 
     #if PIN_EXISTS(POWER_LOSS)
@@ -195,6 +214,19 @@ class PrintJobRecovery {
         }
         else
           outage_counter = 0;
+=======
+    TERN_( HAS_UDISK, static bool load(uint8_t ifudisk);)
+    static void save(const bool force=ENABLED(SAVE_EACH_CMD_MODE), const float zraise=0);
+
+    #if PIN_EXISTS(POWER_LOSS)
+      static inline void outage() {
+        // static uint8_t outage_num = 0;
+        if (enabled /*&& READ(POWER_LOSS_PIN) == POWER_LOSS_STATE*/) {
+          /*outage_num++;
+          if (outage_num >= READ_POWER_LOSS_PIN_NUM)*/  _outage();
+        }
+        // else outage_num = 0;
+>>>>>>> 1775bfc02e (add mingda files)
       }
     #endif
 
@@ -209,8 +241,9 @@ class PrintJobRecovery {
       static void debug(FSTR_P const) {}
     #endif
 
-  private:
     static void write();
+    TERN_( HAS_UDISK, static void usb_write(); )
+  private:
 
     #if ENABLED(BACKUP_POWER_SUPPLY)
       static void retract_and_lift(const_float_t zraise);
@@ -223,3 +256,9 @@ class PrintJobRecovery {
 };
 
 extern PrintJobRecovery recovery;
+#ifdef HAS_UDISK
+  extern uint8_t sd_or_udisk;
+  extern uint16_t plr_num;
+  extern FIL udiskfile;
+  extern bool plr_flag;
+#endif

@@ -299,7 +299,7 @@
  */
 #if ENABLED(THERMAL_PROTECTION_HOTENDS)
   #define THERMAL_PROTECTION_PERIOD 40        // Seconds
-  #define THERMAL_PROTECTION_HYSTERESIS 4     // Degrees Celsius
+  #define THERMAL_PROTECTION_HYSTERESIS 8     // Degrees Celsius
 
   //#define ADAPTIVE_FAN_SLOWING              // Slow part cooling fan if temperature drops
   #if BOTH(ADAPTIVE_FAN_SLOWING, PIDTEMP)
@@ -318,7 +318,11 @@
    * and/or decrease WATCH_TEMP_INCREASE. WATCH_TEMP_INCREASE should not be set
    * below 2.
    */
+<<<<<<< HEAD
   #define WATCH_TEMP_PERIOD  40               // Seconds
+=======
+  #define WATCH_TEMP_PERIOD 40                // Seconds
+>>>>>>> 1775bfc02e (add mingda files)
   #define WATCH_TEMP_INCREASE 2               // Degrees Celsius
 #endif
 
@@ -459,7 +463,7 @@
 
 // Show Temperature ADC value
 // Enable for M105 to include ADC values read from temperature sensors.
-//#define SHOW_TEMP_ADC_VALUES
+#define SHOW_TEMP_ADC_VALUES
 
 /**
  * High Temperature Thermistor Support
@@ -725,13 +729,73 @@
 //#define Z_LATE_ENABLE // Enable Z the last moment. Needed if your Z driver overheats.
 
 // Employ an external closed loop controller. Override pins here if needed.
-//#define EXTERNAL_CLOSED_LOOP_CONTROLLER
+// #define EXTERNAL_CLOSED_LOOP_CONTROLLER
 #if ENABLED(EXTERNAL_CLOSED_LOOP_CONTROLLER)
-  //#define CLOSED_LOOP_ENABLE_PIN        -1
-  //#define CLOSED_LOOP_MOVE_COMPLETE_PIN -1
+  #define CLOSED_LOOP_ENABLE_PIN        -1
+  #define CLOSED_LOOP_MOVE_COMPLETE_PIN -1
 #endif
 
 /**
+<<<<<<< HEAD
+=======
+ * Dual Steppers / Dual Endstops
+ *
+ * This section will allow you to use extra E drivers to drive a second motor for X, Y, or Z axes.
+ *
+ * For example, set X_DUAL_STEPPER_DRIVERS setting to use a second motor. If the motors need to
+ * spin in opposite directions set INVERT_X2_VS_X_DIR. If the second motor needs its own endstop
+ * set X_DUAL_ENDSTOPS. This can adjust for "racking." Use X2_USE_ENDSTOP to set the endstop plug
+ * that should be used for the second endstop. Extra endstops will appear in the output of 'M119'.
+ *
+ * Use X_DUAL_ENDSTOP_ADJUSTMENT to adjust for mechanical imperfection. After homing both motors
+ * this offset is applied to the X2 motor. To find the offset home the X axis, and measure the error
+ * in X2. Dual endstop offsets can be set at runtime with 'M666 X<offset> Y<offset> Z<offset>'.
+ */
+
+//#define X_DUAL_STEPPER_DRIVERS
+#if ENABLED(X_DUAL_STEPPER_DRIVERS)
+  #define INVERT_X2_VS_X_DIR true   // Set 'true' if X motors should rotate in opposite directions
+  //#define X_DUAL_ENDSTOPS
+  #if ENABLED(X_DUAL_ENDSTOPS)
+    #define X2_USE_ENDSTOP _XMAX_
+    #define X2_ENDSTOP_ADJUSTMENT  0
+  #endif
+#endif
+
+//#define Y_DUAL_STEPPER_DRIVERS
+#if ENABLED(Y_DUAL_STEPPER_DRIVERS)
+  #define INVERT_Y2_VS_Y_DIR true   // Set 'true' if Y motors should rotate in opposite directions
+  //#define Y_DUAL_ENDSTOPS
+  #if ENABLED(Y_DUAL_ENDSTOPS)
+    #define Y2_USE_ENDSTOP _YMAX_
+    #define Y2_ENDSTOP_ADJUSTMENT  0
+  #endif
+#endif
+
+//
+// For Z set the number of stepper drivers
+//
+  #define NUM_Z_STEPPER_DRIVERS 2   // (1-4) Z options change based on how many
+
+
+#if NUM_Z_STEPPER_DRIVERS > 1
+  //#define Z_MULTI_ENDSTOPS
+  #if ENABLED(Z_MULTI_ENDSTOPS)
+    #define Z2_USE_ENDSTOP          _XMAX_
+    #define Z2_ENDSTOP_ADJUSTMENT   0
+    #if NUM_Z_STEPPER_DRIVERS >= 3
+      #define Z3_USE_ENDSTOP        _YMAX_
+      #define Z3_ENDSTOP_ADJUSTMENT 0
+    #endif
+    #if NUM_Z_STEPPER_DRIVERS >= 4
+      #define Z4_USE_ENDSTOP        _ZMAX_
+      #define Z4_ENDSTOP_ADJUSTMENT 0
+    #endif
+  #endif
+#endif
+
+/**
+>>>>>>> 1775bfc02e (add mingda files)
  * Dual X Carriage
  *
  * This setup has two X carriages that can move independently, each with its own hotend.
@@ -866,12 +930,21 @@
 
 //#define SENSORLESS_BACKOFF_MM  { 2, 2, 0 }  // (linear=mm, rotational=°) Backoff from endstops before sensorless homing
 
+<<<<<<< HEAD
 #define HOMING_BUMP_MM      { 5, 5, 2 }       // (linear=mm, rotational=°) Backoff from endstops after first bump
+=======
+#if ENABLED(TEST_FW)
+  #define HOMING_BUMP_MM      { 1, 1, 1 }       // (mm) Backoff from endstops after first bump
+#else
+  #define HOMING_BUMP_MM      { 5, 5, 2 }       // (mm) Backoff from endstops after first bump
+  
+#endif
+>>>>>>> 1775bfc02e (add mingda files)
 #define HOMING_BUMP_DIVISOR { 2, 2, 4 }       // Re-Bump Speed Divisor (Divides the Homing Feedrate)
 
 //#define HOMING_BACKOFF_POST_MM { 2, 2, 2 }  // (linear=mm, rotational=°) Backoff from endstops after homing
 
-//#define QUICK_HOME                          // If G28 contains XY do a diagonal move first
+#define QUICK_HOME                          // If G28 contains XY do a diagonal move first
 //#define HOME_Y_BEFORE_X                     // If G28 contains XY home Y before X
 //#define HOME_Z_FIRST                        // Home Z first. Requires a Z-MIN endstop (not a probe).
 //#define CODEPENDENT_XY_HOMING               // If X/Y can't home without homing Y/X first
@@ -1067,6 +1140,8 @@
  * Idle Stepper Shutdown
  * Set DISABLE_INACTIVE_? 'true' to shut down axis steppers after an idle period.
  * The Deactive Time can be overridden with M18 and M84. Set to 0 for No Timeout.
+ * 
+ * 长时间不动就关闭步进电机
  */
 #define DEFAULT_STEPPER_DEACTIVE_TIME 120
 #define DISABLE_INACTIVE_X true
@@ -1080,23 +1155,40 @@
 #define DISABLE_INACTIVE_W true
 #define DISABLE_INACTIVE_E true
 
+<<<<<<< HEAD
 // Default Minimum Feedrates for printing and travel moves
 #define DEFAULT_MINIMUMFEEDRATE       0.0     // (mm/s. °/s for rotational-only moves) Minimum feedrate. Set with M205 S.
 #define DEFAULT_MINTRAVELFEEDRATE     0.0     // (mm/s. °/s for rotational-only moves) Minimum travel feedrate. Set with M205 T.
+=======
+// If the Nozzle or Bed falls when the Z stepper is disabled, set its resting position here.
+// 如果Z步进器被禁用时喷嘴或床身下降，将其静止位置设置在此处。
+//#define Z_AFTER_DEACTIVATE Z_HOME_POS
+
+// 在步进器被停用后需要重新安置
+//#define HOME_AFTER_DEACTIVATE  // Require rehoming after steppers are deactivated
+
+// Default Minimum Feedrates for printing and travel moves
+// 默认打印最小馈电速率和旅行移动
+#define DEFAULT_MINIMUMFEEDRATE       0.0     // (mm/s) Minimum feedrate. Set with M205 S.
+#define DEFAULT_MINTRAVELFEEDRATE     0.0     // (mm/s) Minimum travel feedrate. Set with M205 T.
+>>>>>>> 1775bfc02e (add mingda files)
 
 // Minimum time that a segment needs to take as the buffer gets emptied
+// 当缓冲区被清空时，段需要占用的最小时间（默认最小分段时间）
 #define DEFAULT_MINSEGMENTTIME        20000   // (µs) Set with M205 B.
 
 // Slow down the machine if the lookahead buffer is (by default) half full.
+// 如果前向缓冲区(默认情况下)是半满的，则减慢机器的速度。（当前瞻缓冲区填充到设定的SLOWDOWN_DIVISOR数量时，减慢机器的速度。为较大的缓冲区大小增加减速除数。）
 // Increase the slowdown divisor for larger buffer sizes.
+// 为较大的缓冲区大小增加减速因子。
 #define SLOWDOWN
 #if ENABLED(SLOWDOWN)
   #define SLOWDOWN_DIVISOR 2
 #endif
 
 /**
- * XY Frequency limit
- * Reduce resonance by limiting the frequency of small zigzag infill moves.
+ * XY Frequency limit  限制XY频率
+ * Reduce resonance by limiting the frequency of small zigzag infill moves.  通过限制小之字形填充移动的频率来减少共振。
  * See https://hydraraptor.blogspot.com/2010/12/frequency-limit.html
  * Use M201 F<freq> G<min%> to change limits at runtime.
  */
@@ -1108,11 +1200,11 @@
 // Minimum planner junction speed. Sets the default minimum speed the planner plans for at the end
 // of the buffer and all stops. This should not be much greater than zero and should only be changed
 // if unwanted behavior is observed on a user's machine when running at very slow speeds.
-#define MINIMUM_PLANNER_SPEED 0.05 // (mm/s)
+#define MINIMUM_PLANNER_SPEED 0.05 // (mm/s)    // 最小规划器速度
 
 //
-// Backlash Compensation
-// Adds extra movement to axes on direction-changes to account for backlash.
+// Backlash Compensation  间隙补偿
+// Adds extra movement to axes on direction-changes to account for backlash.  增加额外的运动轴上的方向变化，以考虑反弹。
 //
 //#define BACKLASH_COMPENSATION
 #if ENABLED(BACKLASH_COMPENSATION)
@@ -1147,6 +1239,7 @@
 #endif
 
 /**
+ * 自动间隙校准
  * Automatic backlash, position and hotend offset calibration
  *
  * Enable G425 to run automatic calibration using an electrically-
@@ -1220,12 +1313,18 @@
  * below 1kHz (for AVR) or 10kHz (for ARM), where aliasing between axes in multi-axis moves causes audible
  * vibration and surface artifacts. The algorithm adapts to provide the best possible step smoothing at the
  * lowest stepping frequencies.
+ * 
+ * 自适应步进平滑
+ * 自适应步进平滑提高了多轴移动的分辨率，特别是在低于 1kHz（对于 AVR）或 10kHz（对于 ARM）的步进频率时，
+ * 多轴移动中轴之间的混叠会导致声音振动和表面伪影。
+ * 该算法适用于在最低步进频率下提供最​​佳可能的步进平滑。
  */
 //#define ADAPTIVE_STEP_SMOOTHING
 
 /**
- * Custom Microstepping
+ * Custom Microstepping  自定义微步进
  * Override as-needed for your setup. Up to 3 MS pins are supported.
+ * 如果您的电路板带有名为X_MS1、X_MS2等的引脚，那么您可以使用 G 代码或 LCD 菜单更改微步进。
  */
 //#define MICROSTEP1 LOW,LOW,LOW
 //#define MICROSTEP2 HIGH,LOW,LOW
@@ -1238,7 +1337,7 @@
 #define MICROSTEP_MODES { 16, 16, 16, 16, 16, 16 } // [1,2,4,8,16]
 
 /**
- *  @section  stepper motor current
+ *  @section  stepper motor current  步进电机电流
  *
  *  Some boards have a means of setting the stepper motor current via firmware.
  *
@@ -1295,16 +1394,26 @@
 
 // @section lcd
 
+<<<<<<< HEAD
 #if HAS_MANUAL_MOVE_MENU
   #define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 2*60 } // (mm/min) Feedrates for manual moves along X, Y, Z, E from panel
   #define FINE_MANUAL_MOVE 0.025    // (mm) Smallest manual move (< 0.1mm) applying to Z on most machines
   #if IS_ULTIPANEL
+=======
+#if EITHER(ULTIPANEL, EXTENSIBLE_UI)
+
+  #define MANUAL_FEEDRATE { 50*60, 50*60, 4*60, 1*60 } // (mm/min) Feedrates for manual moves along X, Y, Z, E from panel
+
+  #define SHORT_MANUAL_Z_MOVE 0.025 // (mm) Smallest manual Z move (< 0.1mm)
+  #if ENABLED(ULTIPANEL)
+>>>>>>> 1775bfc02e (add mingda files)
     #define MANUAL_E_MOVES_RELATIVE // Display extruder move distance rather than "position"
     #define ULTIPANEL_FEEDMULTIPLY  // Encoder sets the feedrate multiplier on the Status Screen
   #endif
 #endif
 
 // Change values more rapidly when the encoder is rotated faster
+// 当编码器旋转得更快时，更改值的速度更快
 #define ENCODER_RATE_MULTIPLIER
 #if ENABLED(ENCODER_RATE_MULTIPLIER)
   #define ENCODER_10X_STEPS_PER_SEC   30  // (steps/s) Encoder rate for 10x speed
@@ -1458,6 +1567,7 @@
   #endif
 #endif
 
+// SD 卡支持
 #if ENABLED(SDSUPPORT)
   /**
    * SD Card SPI Speed
@@ -1471,25 +1581,34 @@
   //#define SD_SPI_SPEED SPI_HALF_SPEED
 
   // The standard SD detect circuit reads LOW when media is inserted and HIGH when empty.
+  // 标准SD检测电路在插入介质时读取LOW，空介质时读取HIGH。
   // Enable this option and set to HIGH if your SD cards are incorrectly detected.
+  // 如果您的SD卡检测不正确，请启用此选项并设置为HIGH。
   //#define SD_DETECT_STATE HIGH
 
+<<<<<<< HEAD
   //#define SD_IGNORE_AT_STARTUP            // Don't mount the SD card when starting up
   //#define SDCARD_READONLY                 // Read-only SD card (to save over 2K of flash)
+=======
+  //#define SDCARD_READONLY                 // Read-only SD card (to save over 2K of flash)  只读SD卡(可储存超过2K的闪存)
+>>>>>>> 1775bfc02e (add mingda files)
 
   //#define GCODE_REPEAT_MARKERS            // Enable G-code M808 to set repeat markers and do looping
 
   #define SD_PROCEDURE_DEPTH 1              // Increase if you need more nested M32 calls
 
-  #define SD_FINISHED_STEPPERRELEASE true   // Disable steppers when SD Print is finished
-  #define SD_FINISHED_RELEASECOMMAND "M84"  // Use "M84XYE" to keep Z enabled so your bed stays in place
+  #define SD_FINISHED_STEPPERRELEASE true   // Disable steppers when SD Print is finished  当SD打印完成时禁用步进
+  #define SD_FINISHED_RELEASECOMMAND "M84"  // Use "M84XYE" to keep Z enabled so your bed stays in place  使用“M84XYE”来启用Z，这样你的床就不会动
 
   // Reverse SD sort to show "more recent" files first, according to the card's FAT.
+  // 根据卡片的FAT，反向SD排序首先显示“最近的”文件。
   // Since the FAT gets out of order with usage, SDCARD_SORT_ALPHA is recommended.
+  // 因为FAT的使用顺序不一致，所以推荐使用SDCARD_SORT_ALPHA。
   #define SDCARD_RATHERRECENTFIRST
 
-  #define SD_MENU_CONFIRM_START             // Confirm the selected SD file before printing
+  #define SD_MENU_CONFIRM_START             // Confirm the selected SD file before printing  打印前确认选定的SD文件
 
+<<<<<<< HEAD
   //#define NO_SD_AUTOSTART                 // Remove auto#.g file support completely to save some Flash, SRAM
   //#define MENU_ADDAUTOSTART               // Add a menu option to run auto#.g files
 
@@ -1498,23 +1617,30 @@
   //#define MEDIA_MENU_AT_TOP               // Force the media menu to be listed on the top of the main menu
 
   #define EVENT_GCODE_SD_ABORT "G28XY"      // G-code to run on SD Abort Print (e.g., "G28XY" or "G27")
+=======
+  //#define MENU_ADDAUTOSTART               // Add a menu option to run auto#.g files  添加一个菜单选项来运行auto#。g的文件
+
+  #define EVENT_GCODE_SD_ABORT "G28XY"      // G-code to run on SD Abort Print (e.g., "G28XY" or "G27") 在SD终止打印上运行的G-code(例如，“G28XY”或“G27”)
+>>>>>>> 1775bfc02e (add mingda files)
 
   #if ENABLED(PRINTER_EVENT_LEDS)
+    // (秒)恢复正常照明前保持LED“完成”颜色的时间
     #define PE_LEDS_COMPLETED_TIME  (30*60) // (seconds) Time to keep the LED "done" color before restoring normal illumination
   #endif
 
   /**
-   * Continue after Power-Loss (Creality3D)
+   * Continue after Power-Loss (Creality3D)  断电后继续(Creality3D)
    *
    * Store the current state to the SD Card at the start of each layer
    * during SD printing. If the recovery file is found at boot time, present
    * an option on the LCD screen to continue the print from the last-known
    * point in the file.
    */
-  //#define POWER_LOSS_RECOVERY
+  #define POWER_LOSS_RECOVERY
   #if ENABLED(POWER_LOSS_RECOVERY)
-    #define PLR_ENABLED_DEFAULT   false // Power Loss Recovery enabled by default. (Set with 'M413 Sn' & M500)
+    #define PLR_ENABLED_DEFAULT   true // Power Loss Recovery enabled by default. (Set with 'M413 Sn' & M500)
     //#define BACKUP_POWER_SUPPLY       // Backup power / UPS to move the steppers on power loss
+<<<<<<< HEAD
     //#define POWER_LOSS_ZRAISE       2 // (mm) Z axis raise on resume (on power loss with UPS)
     //#define POWER_LOSS_PIN         44 // Pin to detect power loss. Set to -1 to disable default pin on boards without module.
     //#define POWER_LOSS_STATE     HIGH // State of pin indicating power loss
@@ -1522,6 +1648,13 @@
     //#define POWER_LOSS_PULLDOWN
     //#define POWER_LOSS_PURGE_LEN   20 // (mm) Length of filament to purge on resume
     //#define POWER_LOSS_RETRACT_LEN 10 // (mm) Length of filament to retract on fail. Requires backup power.
+=======
+    //#define POWER_LOSS_RECOVER_ZHOME  // Z homing is needed for proper recovery. 99.9% of the time this should be disabled!
+    // #define POWER_LOSS_ZRAISE       2 // (mm) Z axis raise on resume (on power loss with UPS)
+
+    #define POWER_LOSS_PURGE_LEN   10 // (mm) Length of filament to purge on resume
+    #define POWER_LOSS_RETRACT_LEN 10 // (mm) Length of filament to retract on fail. Requires backup power.
+>>>>>>> 1775bfc02e (add mingda files)
 
     // Without a POWER_LOSS_PIN the following option helps reduce wear on the SD card,
     // especially with "vase mode" printing. Set too high and vases cannot be continued.
@@ -1535,7 +1668,7 @@
   #endif
 
   /**
-   * Sort SD file listings in alphabetical order.
+   * Sort SD file listings in alphabetical order.  排序SD文件清单在字母顺序。
    *
    * With this option enabled, items on SD cards will be sorted
    * by name for easier navigation.
@@ -1557,27 +1690,37 @@
    *  - SDSORT_CACHE_NAMES will retain the sorted file listing in RAM. (Expensive!)
    *  - SDSORT_DYNAMIC_RAM only uses RAM when the SD menu is visible. (Use with caution!)
    */
-  //#define SDCARD_SORT_ALPHA
+  #define SDCARD_SORT_ALPHA
 
   // SD Card Sorting options
   #if ENABLED(SDCARD_SORT_ALPHA)
     #define SDSORT_LIMIT       40     // Maximum number of sorted items (10-256). Costs 27 bytes each.
     #define FOLDER_SORTING     -1     // -1=above  0=none  1=below
     #define SDSORT_GCODE       false  // Allow turning sorting on/off with LCD and M34 G-code.
-    #define SDSORT_USES_RAM    false  // Pre-allocate a static array for faster pre-sorting.
+    #define SDSORT_USES_RAM    true   // Pre-allocate a static array for faster pre-sorting.
     #define SDSORT_USES_STACK  false  // Prefer the stack for pre-sorting to give back some SRAM. (Negated by next 2 options.)
     #define SDSORT_CACHE_NAMES false  // Keep sorted items in RAM longer for speedy performance. Most expensive option.
     #define SDSORT_DYNAMIC_RAM false  // Use dynamic allocation (within SD menus). Least expensive option. Set SDSORT_LIMIT before use!
     #define SDSORT_CACHE_VFATS 2      // Maximum number of 13-byte VFAT entries to use for sorting.
                                       // Note: Only affects SCROLL_LONG_FILENAMES with SDSORT_CACHE_NAMES but not SDSORT_DYNAMIC_RAM.
+    #define SDCARD_SORT_CHRONOLOGICAL
   #endif
 
+<<<<<<< HEAD
   // Allow international symbols in long filenames. To display correctly, the
   // LCD's font must contain the characters. Check your selected LCD language.
   //#define UTF_FILENAME_SUPPORT
 
   //#define LONG_FILENAME_HOST_SUPPORT    // Get the long filename of a file/folder with 'M33 <dosname>' and list long filenames with 'M20 L'
   //#define LONG_FILENAME_WRITE_SUPPORT   // Create / delete files with long filenames via M28, M30, and Binary Transfer Protocol
+=======
+  // This allows hosts to request long names for files and folders with M33
+  // 这允许主机请求使用M33的文件和文件夹的长名称
+  #define LONG_FILENAME_HOST_SUPPORT
+
+  // Enable this option to scroll long filenames in the SD card menu
+  #define SCROLL_LONG_FILENAMES
+>>>>>>> 1775bfc02e (add mingda files)
 
   //#define SCROLL_LONG_FILENAMES         // Scroll long filenames in the SD card menu
 
@@ -2009,10 +2152,10 @@
  *
  * Warning: Does not respect endstops!
  */
-//#define BABYSTEPPING
+#define BABYSTEPPING
 #if ENABLED(BABYSTEPPING)
   //#define INTEGRATED_BABYSTEPPING         // EXPERIMENTAL integration of babystepping into the Stepper ISR
-  //#define BABYSTEP_WITHOUT_HOMING
+  #define BABYSTEP_WITHOUT_HOMING
   //#define BABYSTEP_ALWAYS_AVAILABLE       // Allow babystepping at all times (not just during movement).
   //#define BABYSTEP_XY                     // Also enable X/Y Babystepping. Not supported on DELTA!
   #define BABYSTEP_INVERT_Z false           // Change if Z babysteps should go the other way
@@ -2030,7 +2173,7 @@
     #endif
   #endif
 
-  //#define BABYSTEP_DISPLAY_TOTAL          // Display total babysteps since last G28
+  #define BABYSTEP_DISPLAY_TOTAL          // Display total babysteps since last G28
 
   //#define BABYSTEP_ZPROBE_OFFSET          // Combine M851 Z and Babystepping
   #if ENABLED(BABYSTEP_ZPROBE_OFFSET)
@@ -2056,13 +2199,17 @@
  *
  * See https://marlinfw.org/docs/features/lin_advance.html for full instructions.
  */
-//#define LIN_ADVANCE
+#define LIN_ADVANCE
 #if ENABLED(LIN_ADVANCE)
-  //#define EXTRA_LIN_ADVANCE_K // Enable for second linear advance constants
-  #define LIN_ADVANCE_K 0.22    // Unit: mm compression per 1mm/s extruder speed
+  #define EXTRA_LIN_ADVANCE_K // Enable for second linear advance constants
+  #define LIN_ADVANCE_K 0    // Unit: mm compression per 1mm/s extruder speed
   //#define LA_DEBUG            // If enabled, this will generate debug information output over USB.
+<<<<<<< HEAD
   //#define EXPERIMENTAL_SCURVE // Enable this option to permit S-Curve Acceleration
   //#define ALLOW_LOW_EJERK     // Allow a DEFAULT_EJERK value of <10. Recommended for direct drive hotends.
+=======
+  #define EXPERIMENTAL_SCURVE // Enable this option to permit S-Curve Acceleration
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 // @section leveling
@@ -2269,10 +2416,11 @@
 #endif
 
 // Moves (or segments) with fewer steps than this will be joined with the next move
-#define MIN_STEPS_PER_SEGMENT 6
+// 步数少于此的移动（或分段）将与下一个移动合并。
+#define MIN_STEPS_PER_SEGMENT 6   // 每段最少步数
 
 /**
- * Minimum delay before and after setting the stepper DIR (in ns)
+ * Minimum delay before and after setting the stepper DIR (in ns)  在设置步进DIR之前和之后的最小延迟(ns)
  *     0 : No delay (Expect at least 10µS since one Stepper ISR must transpire)
  *    20 : Minimum for TMC2xxx drivers
  *   200 : Minimum for A4988 drivers
@@ -2284,11 +2432,11 @@
  *
  * Override the default value based on the driver type set in Configuration.h.
  */
-//#define MINIMUM_STEPPER_POST_DIR_DELAY 650
-//#define MINIMUM_STEPPER_PRE_DIR_DELAY 650
+// #define MINIMUM_STEPPER_POST_DIR_DELAY 20   // 20211022, 之前未打开
+// #define MINIMUM_STEPPER_PRE_DIR_DELAY 20
 
 /**
- * Minimum stepper driver pulse width (in µs)
+ * Minimum stepper driver pulse width (in µs)   最小步进驱动脉冲宽度(以µs计)
  *   0 : Smallest possible width the MCU can produce, compatible with TMC2xxx drivers
  *   0 : Minimum 500ns for LV8729, adjusted in stepper.h
  *   1 : Minimum for A4988 and A5984 stepper drivers
@@ -2301,9 +2449,9 @@
 //#define MINIMUM_STEPPER_PULSE 2
 
 /**
- * Maximum stepping rate (in Hz) the stepper driver allows
+ * Maximum stepping rate (in Hz) the stepper driver allows    步进驱动器允许的最大步进速率(Hz)
  *  If undefined, defaults to 1MHz / (2 * MINIMUM_STEPPER_PULSE)
- *  5000000 : Maximum for TMC2xxx stepper drivers
+ *  5000000 : Maximum for TMC2xxx stepper drivers   TMC2xxx步进驱动的最大值
  *  1000000 : Maximum for LV8729 stepper driver
  *  500000  : Maximum for A4988 stepper driver
  *  250000  : Maximum for DRV8825 stepper driver
@@ -2330,7 +2478,7 @@
 #if BOTH(SDSUPPORT, DIRECT_STEPPING)
   #define BLOCK_BUFFER_SIZE  8
 #elif ENABLED(SDSUPPORT)
-  #define BLOCK_BUFFER_SIZE 16
+  #define BLOCK_BUFFER_SIZE 32
 #else
   #define BLOCK_BUFFER_SIZE 16
 #endif
@@ -2579,28 +2727,28 @@
  *
  * Enable PARK_HEAD_ON_PAUSE to add the G-code M125 Pause and Park.
  */
-//#define ADVANCED_PAUSE_FEATURE
+#define ADVANCED_PAUSE_FEATURE
 #if ENABLED(ADVANCED_PAUSE_FEATURE)
-  #define PAUSE_PARK_RETRACT_FEEDRATE         60  // (mm/s) Initial retract feedrate.
+  #define PAUSE_PARK_RETRACT_FEEDRATE         10  // (mm/s) Initial retract feedrate.
   #define PAUSE_PARK_RETRACT_LENGTH            2  // (mm) Initial retract.
                                                   // This short retract is done immediately, before parking the nozzle.
   #define FILAMENT_CHANGE_UNLOAD_FEEDRATE     10  // (mm/s) Unload filament feedrate. This can be pretty fast.
   #define FILAMENT_CHANGE_UNLOAD_ACCEL        25  // (mm/s^2) Lower acceleration may allow a faster feedrate.
-  #define FILAMENT_CHANGE_UNLOAD_LENGTH      100  // (mm) The length of filament for a complete unload.
+  #define FILAMENT_CHANGE_UNLOAD_LENGTH       10  // (mm) The length of filament for a complete unload.
                                                   //   For Bowden, the full length of the tube and nozzle.
                                                   //   For direct drive, the full length of the nozzle.
                                                   //   Set to 0 for manual unloading.
-  #define FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE   6  // (mm/s) Slow move when starting load.
+  #define FILAMENT_CHANGE_SLOW_LOAD_FEEDRATE   10  // (mm/s) Slow move when starting load.
   #define FILAMENT_CHANGE_SLOW_LOAD_LENGTH     0  // (mm) Slow length, to allow time to insert material.
                                                   // 0 to disable start loading and skip to fast load only
-  #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE   6  // (mm/s) Load filament feedrate. This can be pretty fast.
+  #define FILAMENT_CHANGE_FAST_LOAD_FEEDRATE   10  // (mm/s) Load filament feedrate. This can be pretty fast.
   #define FILAMENT_CHANGE_FAST_LOAD_ACCEL     25  // (mm/s^2) Lower acceleration may allow a faster feedrate.
-  #define FILAMENT_CHANGE_FAST_LOAD_LENGTH     0  // (mm) Load length of filament, from extruder gear to nozzle.
+  #define FILAMENT_CHANGE_FAST_LOAD_LENGTH     10  // (mm) Load length of filament, from extruder gear to nozzle.
                                                   //   For Bowden, the full length of the tube and nozzle.
                                                   //   For direct drive, the full length of the nozzle.
   //#define ADVANCED_PAUSE_CONTINUOUS_PURGE       // Purge continuously up to the purge length until interrupted.
-  #define ADVANCED_PAUSE_PURGE_FEEDRATE        3  // (mm/s) Extrude feedrate (after loading). Should be slower than load feedrate.
-  #define ADVANCED_PAUSE_PURGE_LENGTH         50  // (mm) Length to extrude after loading.
+  #define ADVANCED_PAUSE_PURGE_FEEDRATE        10  // (mm/s) Extrude feedrate (after loading). Should be slower than load feedrate.
+  #define ADVANCED_PAUSE_PURGE_LENGTH         10  // (mm) Length to extrude after loading.
                                                   //   Set to 0 for manual extrusion.
                                                   //   Filament can be extruded repeatedly from the Filament Change menu
                                                   //   until extrusion is consistent, and to purge old filament.
@@ -2613,16 +2761,16 @@
   #define FILAMENT_UNLOAD_PURGE_LENGTH         8  // (mm) An unretract is done, then this length is purged.
   #define FILAMENT_UNLOAD_PURGE_FEEDRATE      25  // (mm/s) feedrate to purge before unload
 
-  #define PAUSE_PARK_NOZZLE_TIMEOUT           45  // (seconds) Time limit before the nozzle is turned off for safety.
-  #define FILAMENT_CHANGE_ALERT_BEEPS         10  // Number of alert beeps to play when a response is needed.
+  #define PAUSE_PARK_NOZZLE_TIMEOUT           120  // (seconds) Time limit before the nozzle is turned off for safety.
+  #define FILAMENT_CHANGE_ALERT_BEEPS         5  // 需要响应时播放的警报哔哔声的数量。
   #define PAUSE_PARK_NO_STEPPER_TIMEOUT           // Enable for XYZ steppers to stay powered on during filament change.
   //#define FILAMENT_CHANGE_RESUME_ON_INSERT      // Automatically continue / load filament when runout sensor is triggered again.
   //#define PAUSE_REHEAT_FAST_RESUME              // Reduce number of waits by not prompting again post-timeout before continuing.
 
-  //#define PARK_HEAD_ON_PAUSE                    // Park the nozzle during pause and filament change.
+  #define PARK_HEAD_ON_PAUSE                    // Park the nozzle during pause and filament change.
   //#define HOME_BEFORE_FILAMENT_CHANGE           // If needed, home before parking for filament change
 
-  //#define FILAMENT_LOAD_UNLOAD_GCODES           // Add M701/M702 Load/Unload G-codes, plus Load/Unload in the LCD Prepare menu.
+  #define FILAMENT_LOAD_UNLOAD_GCODES           // Add M701/M702 Load/Unload G-codes, plus Load/Unload in the LCD Prepare menu.
   //#define FILAMENT_UNLOAD_ALL_EXTRUDERS         // Allow M702 to unload all extruders above a minimum target temp (as set by M302)
 #endif
 
@@ -2789,15 +2937,20 @@
 #if HAS_TRINAMIC_CONFIG
 
   #define HOLD_MULTIPLIER    0.5  // Scales down the holding current from run current
+<<<<<<< HEAD
 
   /**
    * Interpolate microsteps to 256
    * Override for each driver with <driver>_INTERPOLATE settings below
    */
   #define INTERPOLATE      true
+=======
+  #define INTERPOLATE       true  // Interpolate X/Y/Z_MICROSTEPS to 256
+  #define SHORT_PROTECTION        // Low side short protection disable
+>>>>>>> 1775bfc02e (add mingda files)
 
   #if AXIS_IS_TMC(X)
-    #define X_CURRENT       800        // (mA) RMS current. Multiply by 1.414 for peak current.
+    #define X_CURRENT       500        // (mA) RMS current. Multiply by 1.414 for peak current.
     #define X_CURRENT_HOME  X_CURRENT  // (mA) RMS current for sensorless homing
     #define X_MICROSTEPS     16        // 0..256
     #define X_RSENSE          0.11
@@ -2817,7 +2970,11 @@
   #endif
 
   #if AXIS_IS_TMC(Y)
-    #define Y_CURRENT       800
+    #if ENABLED(R4_PRO)
+      #define Y_CURRENT       900
+    #else
+      #define Y_CURRENT       700
+    #endif
     #define Y_CURRENT_HOME  Y_CURRENT
     #define Y_MICROSTEPS     16
     #define Y_RSENSE          0.11
@@ -2837,7 +2994,7 @@
   #endif
 
   #if AXIS_IS_TMC(Z)
-    #define Z_CURRENT       800
+    #define Z_CURRENT       600
     #define Z_CURRENT_HOME  Z_CURRENT
     #define Z_MICROSTEPS     16
     #define Z_RSENSE          0.11
@@ -2847,7 +3004,7 @@
   #endif
 
   #if AXIS_IS_TMC(Z2)
-    #define Z2_CURRENT      800
+    #define Z2_CURRENT      600
     #define Z2_CURRENT_HOME Z2_CURRENT
     #define Z2_MICROSTEPS    Z_MICROSTEPS
     #define Z2_RSENSE         0.11
@@ -2937,7 +3094,7 @@
   #endif
 
   #if AXIS_IS_TMC(E0)
-    #define E0_CURRENT      800
+    #define E0_CURRENT      500
     #define E0_MICROSTEPS    16
     #define E0_RSENSE         0.11
     #define E0_CHAIN_POS     -1
@@ -3182,6 +3339,7 @@
    */
   //#define HYBRID_THRESHOLD
 
+<<<<<<< HEAD
   #define X_HYBRID_THRESHOLD     100  // [mm/s]
   #define X2_HYBRID_THRESHOLD    100
   #define Y_HYBRID_THRESHOLD     100
@@ -3196,6 +3354,16 @@
   #define U_HYBRID_THRESHOLD       3  // [mm/s]
   #define V_HYBRID_THRESHOLD       3
   #define W_HYBRID_THRESHOLD       3
+=======
+  #define X_HYBRID_THRESHOLD     200  // [mm/s]
+  #define X2_HYBRID_THRESHOLD    200
+  #define Y_HYBRID_THRESHOLD     200
+  #define Y2_HYBRID_THRESHOLD    200
+  #define Z_HYBRID_THRESHOLD       10
+  #define Z2_HYBRID_THRESHOLD      10
+  #define Z10_HYBRID_THRESHOLD      10
+  #define Z4_HYBRID_THRESHOLD      10
+>>>>>>> 1775bfc02e (add mingda files)
   #define E0_HYBRID_THRESHOLD     30
   #define E1_HYBRID_THRESHOLD     30
   #define E2_HYBRID_THRESHOLD     30
@@ -3236,11 +3404,11 @@
   #if EITHER(SENSORLESS_HOMING, SENSORLESS_PROBING)
     // TMC2209: 0...255. TMC2130: -64...63
     #define X_STALL_SENSITIVITY  8
-    #define X2_STALL_SENSITIVITY X_STALL_SENSITIVITY
+    // #define X2_STALL_SENSITIVITY X_STALL_SENSITIVITY
     #define Y_STALL_SENSITIVITY  8
-    #define Y2_STALL_SENSITIVITY Y_STALL_SENSITIVITY
-    //#define Z_STALL_SENSITIVITY  8
-    //#define Z2_STALL_SENSITIVITY Z_STALL_SENSITIVITY
+    // #define Y2_STALL_SENSITIVITY Y_STALL_SENSITIVITY
+    #define Z_STALL_SENSITIVITY  8
+    #define Z2_STALL_SENSITIVITY Z_STALL_SENSITIVITY
     //#define Z3_STALL_SENSITIVITY Z_STALL_SENSITIVITY
     //#define Z4_STALL_SENSITIVITY Z_STALL_SENSITIVITY
     //#define I_STALL_SENSITIVITY  8
@@ -3250,7 +3418,7 @@
     //#define V_STALL_SENSITIVITY  8
     //#define W_STALL_SENSITIVITY  8
     //#define SPI_ENDSTOPS              // TMC2130 only
-    //#define IMPROVE_HOMING_RELIABILITY
+    //#define IMPROVE_HOMING_RELIABILITY  // 提高复位的可靠性
   #endif
 
   // @section tmc/config
@@ -3342,7 +3510,7 @@
  * Add the M240 G-code to take a photo.
  * The photo can be triggered by a digital pin or a physical movement.
  */
-//#define PHOTO_GCODE
+// #define PHOTO_GCODE
 #if ENABLED(PHOTO_GCODE)
   // A position to move to (and raise Z) before taking the photo
   //#define PHOTO_POSITION { X_MAX_POS - 5, Y_MAX_POS, 0 }  // { xpos, ypos, zraise } (M240 X Y Z)
@@ -3351,7 +3519,9 @@
 
   // Canon RC-1 or homebrew digital camera trigger
   // Data from: https://www.doc-diy.net/photo/rc-1_hacked/
-  //#define PHOTOGRAPH_PIN 23
+  #define PHOTOGRAPH_PIN PB13
+  #define PHOTO_PIN_ACTIVE_STATE HIGH  // 相机引脚触发模式
+  #define MINGDA_MODE
 
   // Canon Hack Development Kit
   // https://captain-slow.dk/2014/03/09/3d-printing-timelapses/
@@ -3676,6 +3846,7 @@
  * Auto-report temperatures with M155 S<seconds>
  */
 #define AUTO_REPORT_TEMPERATURES
+<<<<<<< HEAD
 #if ENABLED(AUTO_REPORT_TEMPERATURES) && TEMP_SENSOR_REDUNDANT
   //#define AUTO_REPORT_REDUNDANT // Include the "R" sensor in the auto-report
 #endif
@@ -3684,6 +3855,9 @@
  * Auto-report position with M154 S<seconds>
  */
 //#define AUTO_REPORT_POSITION
+=======
+#define AUTO_REPORT_POSITION
+>>>>>>> 1775bfc02e (add mingda files)
 
 /**
  * Include capabilities in M115 output

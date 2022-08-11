@@ -641,6 +641,9 @@ class Planner {
        *
        *  Returns 1.0 if planner.z_fade_height is 0.0.
        *  Returns 0.0 if Z is past the specified 'Fade Height'.
+       *  根据给定的Z高度得到Z水准的渐变因子，只有在需要时才重新计算。
+       *  如果planner，则返回1.0。z_fade_height是0.0。
+       *  如果Z超过了指定的“淡出高度”，则返回0.0。
        */
       static float fade_scaling_factor_for_z(const_float_t rz) {
         static float z_fade_factor = 1;
@@ -891,6 +894,7 @@ class Planner {
      */
     static void set_machine_position_mm(const abce_pos_t &abce);
 
+    static void set_axis_position_mm(const AxisEnum axis, const float distance);
     /**
      * Get an axis position according to stepper position(s)
      * For CORE machines apply translation from ABC to XYZ.

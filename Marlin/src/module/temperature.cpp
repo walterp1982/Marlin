@@ -344,6 +344,9 @@ PGMSTR(str_t_heating_failed, STR_T_HEATING_FAILED);
 
 // HAS_FAN does not include CONTROLLER_FAN
 #if HAS_FAN
+  #define FAN_PERIOD      2786
+  #define FAN_PRESCALER   3
+  #define DUTY_RATIO      ((float)(FAN_PERIOD-1))/255
 
   uint8_t Temperature::fan_speed[FAN_COUNT]; // = { 0 }
 
@@ -401,10 +404,34 @@ PGMSTR(str_t_heating_failed, STR_T_HEATING_FAILED);
 
     if (fan >= FAN_COUNT) return;
 
+<<<<<<< HEAD
     fan_speed[fan] = speed;
     #if REDUNDANT_PART_COOLING_FAN
       if (fan == 0) fan_speed[REDUNDANT_PART_COOLING_FAN] = speed;
     #endif
+=======
+    fan_speed[target] = speed;
+    // // TIM8->CCR2=(uint16_t)((float)speed*219.604);
+    uint16_t fan_frequency = (((float)(80+speed)*(DUTY_RATIO)));
+    if(speed > 0){
+      NOMORE(fan_frequency, FAN_PERIOD-1);
+    }
+    else{
+      // TIM8->CCR2=(uint16_t)0;
+      fan_frequency = 0;
+    }
+    switch(target){
+      case 0:
+
+          TIM8->CCR2=(uint16_t)fan_frequency;
+
+        break;
+      case 1:
+        TIM10->CCR1 = fan_frequency;
+        break;
+      default:break;
+    }
+>>>>>>> 1775bfc02e (add mingda files)
 
     TERN_(REPORT_FAN_CHANGE, report_fan_speed(fan));
   }
@@ -2381,6 +2408,7 @@ void Temperature::updateTemperaturesFromRawValues() {
       #endif
     }
 
+<<<<<<< HEAD
   #endif // HAS_HOTEND
 
   #define TP_CMP(S,A,B) (TEMPDIR(S) < 0 ? ((A)<(B)) : ((A)>(B)))
@@ -2406,6 +2434,71 @@ void Temperature::updateTemperaturesFromRawValues() {
   #undef TP_CMP
 
 } // Temperature::updateTemperaturesFromRawValues
+=======
+// Init fans according to whether they're native PWM or Software PWM
+#ifdef ALFAWISE_UX0
+  #define _INIT_SOFT_FAN(P) OUT_WRITE_OD(P, FAN_INVERTING ? LOW : HIGH)
+#else
+  #define _INIT_SOFT_FAN(P) OUT_WRITE(P, FAN_INVERTING ? LOW : HIGH)
+#endif
+#if ENABLED(FAN_SOFT_PWM)
+  #define _INIT_FAN_PIN(P) _INIT_SOFT_FAN(P)
+#else
+  #define _INIT_FAN_PIN(P) do{ if (PWM_PIN(P)) SET_PWM(P); else _INIT_SOFT_FAN(P); }while(0)
+#endif
+#if ENABLED(FAST_PWM_FAN)
+  #define SET_FAST_PWM_FREQ(P) set_pwm_frequency(P, FAST_PWM_FAN_FREQUENCY)
+#else
+  #define SET_FAST_PWM_FREQ(P) NOOP
+#endif
+#define INIT_FAN_PIN(P) do{ _INIT_FAN_PIN(P); SET_FAST_PWM_FREQ(P); }while(0)
+#if EXTRUDER_AUTO_FAN_SPEED != 255
+  #define INIT_E_AUTO_FAN_PIN(P) do{ if (P == FAN1_PIN || P == FAN2_PIN) { SET_PWM(P); SET_FAST_PWM_FREQ(P); } else SET_OUTPUT(P); }while(0)
+#else
+  #define INIT_E_AUTO_FAN_PIN(P) SET_OUTPUT(P)
+#endif
+#if CHAMBER_AUTO_FAN_SPEED != 255
+  #define INIT_CHAMBER_AUTO_FAN_PIN(P) do{ if (P == FAN1_PIN || P == FAN2_PIN) { SET_PWM(P); SET_FAST_PWM_FREQ(P); } else SET_OUTPUT(P); }while(0)
+#else
+  #define INIT_CHAMBER_AUTO_FAN_PIN(P) SET_OUTPUT(P)
+#endif
+>>>>>>> 1775bfc02e (add mingda files)
+
+  
+
+/*fix extruder fan doesn't work*/
+  TIM_HandleTypeDef TIMx_Handler;
+  TIM_OC_InitTypeDef TIM8_CH2Handler;	 
+  void TIM8_CH2_PWM_Init(uint16_t arr,uint16_t psc)
+  {
+    TIMx_Handler.Instance=TIM8;
+    TIMx_Handler.Init.Prescaler=psc;
+    TIMx_Handler.Init.CounterMode=TIM_COUNTERMODE_UP;
+    TIMx_Handler.Init.Period=arr;
+    TIMx_Handler.Init.ClockDivision=TIM_CLOCKDIVISION_DIV1;
+    HAL_TIM_PWM_Init(&TIMx_Handler);
+    
+    TIM8_CH2Handler.OCMode=TIM_OCMODE_PWM1;
+    TIM8_CH2Handler.Pulse=0;
+    TIM8_CH2Handler.OCPolarity=TIM_OCPOLARITY_HIGH;
+    HAL_TIM_PWM_ConfigChannel(&TIMx_Handler,&TIM8_CH2Handler,TIM_CHANNEL_2);
+  
+    HAL_TIM_PWM_Start(&TIMx_Handler,TIM_CHANNEL_2);
+  }
+
+  void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim)
+  {
+    GPIO_InitTypeDef GPIO_Initure;
+    __HAL_RCC_TIM8_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+    
+    GPIO_Initure.Pin=GPIO_PIN_7;
+    GPIO_Initure.Mode=GPIO_MODE_AF_PP;
+    GPIO_Initure.Pull=GPIO_PULLUP;
+    GPIO_Initure.Speed=GPIO_SPEED_HIGH;
+    GPIO_Initure.Alternate= GPIO_AF3_TIM8;
+    HAL_GPIO_Init(GPIOC,&GPIO_Initure);
+  }
 
 /**
  * Initialize the temperature manager
@@ -2482,6 +2575,7 @@ void Temperature::init() {
 
   // Thermistor activation by MCU pin
   #if PIN_EXISTS(TEMP_0_TR_ENABLE)
+<<<<<<< HEAD
     OUT_WRITE(TEMP_0_TR_ENABLE_PIN, (
       #if TEMP_SENSOR_IS_ANY_MAX_TC(0)
         HIGH
@@ -2498,6 +2592,12 @@ void Temperature::init() {
         LOW
       #endif
     ));
+=======
+    OUT_WRITE(TEMP_0_TR_ENABLE_PIN, ENABLED(HEATER_0_USES_MAX6675));
+  #endif
+  #if PIN_EXISTS(TEMP_1_TR_ENABLE)
+    OUT_WRITE(TEMP_1_TR_ENABLE_PIN, ENABLED(HEATER_1_USES_MAX6675));
+>>>>>>> 1775bfc02e (add mingda files)
   #endif
 
   #if ENABLED(MPCTEMP)
@@ -2545,15 +2645,27 @@ void Temperature::init() {
     OUT_WRITE(HEATER_CHAMBER_PIN, HEATER_CHAMBER_INVERTING);
   #endif
 
+<<<<<<< HEAD
   #if HAS_COOLER
     OUT_WRITE(COOLER_PIN, COOLER_INVERTING);
   #endif
 
   #if HAS_FAN0
     INIT_FAN_PIN(FAN_PIN);
+=======
+
+  #if HAS_FAN0 
+    // INIT_FAN_PIN(FAN_PIN);
+    // TIM8_CH2_PWM_Init(55999,2);  // 1000Hz
+
+    TIM8_CH2_PWM_Init(FAN_PERIOD-1,FAN_PRESCALER-1);  // 屏率：168M/FAN_PERIOD/FAN_PRESCALER
+
+>>>>>>> 1775bfc02e (add mingda files)
   #endif
   #if HAS_FAN1
+
     INIT_FAN_PIN(FAN1_PIN);
+
   #endif
   #if HAS_FAN2
     INIT_FAN_PIN(FAN2_PIN);
@@ -2603,6 +2715,53 @@ void Temperature::init() {
   TERN_(POWER_MONITOR_CURRENT,  hal.adc_enable(POWER_MONITOR_CURRENT_PIN));
   TERN_(POWER_MONITOR_VOLTAGE,  hal.adc_enable(POWER_MONITOR_VOLTAGE_PIN));
 
+<<<<<<< HEAD
+=======
+    OUT_WRITE(SS_PIN, HIGH);
+    OUT_WRITE(MAX6675_SS_PIN, HIGH);
+
+  #endif
+
+  #if ENABLED(HEATER_1_USES_MAX6675)
+    OUT_WRITE(MAX6675_SS2_PIN, HIGH);
+  #endif
+  
+  HAL_adc_init();
+
+  #if HAS_TEMP_ADC_0
+    HAL_ANALOG_SELECT(TEMP_0_PIN);
+  #endif
+  #if HAS_TEMP_ADC_1
+    HAL_ANALOG_SELECT(TEMP_1_PIN);
+  #endif
+  #if HAS_TEMP_ADC_2
+    HAL_ANALOG_SELECT(TEMP_2_PIN);
+  #endif
+  #if HAS_TEMP_ADC_3
+    HAL_ANALOG_SELECT(TEMP_3_PIN);
+  #endif
+  #if HAS_TEMP_ADC_4
+    HAL_ANALOG_SELECT(TEMP_4_PIN);
+  #endif
+  #if HAS_TEMP_ADC_5
+    HAL_ANALOG_SELECT(TEMP_5_PIN);
+  #endif
+  #if HAS_TEMP_ADC_6
+    HAL_ANALOG_SELECT(TEMP_6_PIN);
+  #endif
+  #if HAS_TEMP_ADC_7
+    HAL_ANALOG_SELECT(TEMP_7_PIN);
+  #endif
+  #if HAS_JOY_ADC_X
+    HAL_ANALOG_SELECT(JOY_X_PIN);
+  #endif
+  #if HAS_JOY_ADC_Y
+    HAL_ANALOG_SELECT(JOY_Y_PIN);
+  #endif
+  #if HAS_JOY_ADC_Z
+    HAL_ANALOG_SELECT(JOY_Z_PIN);
+  #endif
+>>>>>>> 1775bfc02e (add mingda files)
   #if HAS_JOY_ADC_EN
     SET_INPUT_PULLUP(JOY_EN_PIN);
   #endif
@@ -2658,9 +2817,28 @@ void Temperature::init() {
 
     #if _MINMAX_TEST(0, MIN)
       _TEMP_MIN_E(0);
+      //for debug use only.
+      // do {
+      //   const int16_t tmin = _MAX(HEATER_0_MINTEMP, \
+      //     TERN(HEATER_0_USER_THERMISTOR, 0, (int16_t)pgm_read_word(&HEATER_0_TEMPTABLE[HEATER_0_SENSOR_MINTEMP_IND].celsius)));
+      //   temp_range[0].mintemp = tmin;
+      //   while (analog_to_celsius_hotend(temp_range[0].raw_min, 0) < tmin) {
+      //     temp_range[0].raw_min += TEMPDIR(0) * (OVERSAMPLENR); 
+      //   }
+      // } while(0);
+      
     #endif
     #if _MINMAX_TEST(0, MAX)
       _TEMP_MAX_E(0);
+      //for debug use only.
+      // do{ \
+      //   const int16_t tmax = _MIN(HEATER_0_MAXTEMP, \
+      //     TERN(HEATER_0_USER_THERMISTOR, 2000, (int16_t)pgm_read_word(&HEATER_0_TEMPTABLE[HEATER_0_SENSOR_MAXTEMP_IND].celsius) - 1));
+      //   temp_range[0].maxtemp = tmax; \
+      //   while (analog_to_celsius_hotend(temp_range[0].raw_max, 0) > tmax) \
+      //     temp_range[0].raw_max -= TEMPDIR(0) * (OVERSAMPLENR); \
+      // }while(0);
+
     #endif
     #if _MINMAX_TEST(1, MIN)
       _TEMP_MIN_E(1);
@@ -2890,6 +3068,12 @@ void Temperature::disable_all_heaters() {
   TERN_(AUTOTEMP, planner.autotemp_enabled = false);
   TERN_(PROBING_HEATERS_OFF, pause_heaters(false));
 
+  #if HAS_HEATED_BED
+    setTargetBed(0);
+    temp_bed.soft_pwm_amount = 0;
+    WRITE_HEATER_BED(LOW);
+  #endif
+  
   #if HAS_HOTEND
     HOTEND_LOOP() {
       setTargetHotend(0, e);
@@ -2902,11 +3086,6 @@ void Temperature::disable_all_heaters() {
     REPEAT(HOTENDS, DISABLE_HEATER);
   #endif
 
-  #if HAS_HEATED_BED
-    setTargetBed(0);
-    temp_bed.soft_pwm_amount = 0;
-    WRITE_HEATER_BED(LOW);
-  #endif
 
   #if HAS_HEATED_CHAMBER
     setTargetChamber(0);
@@ -3182,6 +3361,19 @@ void Temperature::update_raw_temperatures() {
   TERN_(HAS_JOY_ADC_X, joystick.x.update());
   TERN_(HAS_JOY_ADC_Y, joystick.y.update());
   TERN_(HAS_JOY_ADC_Z, joystick.z.update());
+<<<<<<< HEAD
+=======
+
+  raw_temps_ready = true;
+  // SERIAL_PRINTF("[ADC] temp extrutor \t%d %d %d", 
+  //                 temp_hotend[0].raw, 
+  //                 temp_hotend[0].acc, 
+  //                 (int)temp_hotend[0].celsius);
+  // SERIAL_PRINTF("[ADC] temp bed \t%d %d %d", 
+  //                 temp_bed.raw, 
+  //                 temp_bed.acc, 
+  //                 (int)temp_bed.celsius);
+>>>>>>> 1775bfc02e (add mingda files)
 }
 
 /**
@@ -3213,6 +3405,72 @@ void Temperature::readings_ready() {
   TERN_(HAS_JOY_ADC_X, joystick.x.reset());
   TERN_(HAS_JOY_ADC_Y, joystick.y.reset());
   TERN_(HAS_JOY_ADC_Z, joystick.z.reset());
+<<<<<<< HEAD
+=======
+
+  #if HAS_HOTEND
+
+    static constexpr int8_t temp_dir[] = {
+      TERN(HEATER_0_USES_MAX6675, 0, TEMPDIR(0))
+      #if HAS_MULTI_HOTEND
+        , TERN(HEATER_1_USES_MAX6675, 0, TEMPDIR(1))
+        #if HOTENDS > 2
+          #define _TEMPDIR(N) , TEMPDIR(N)
+          REPEAT_S(2, HOTENDS, _TEMPDIR)
+        #endif
+      #endif
+    };
+
+    LOOP_L_N(e, COUNT(temp_dir)) {
+      const int8_t tdir = temp_dir[e];
+      if (tdir) {
+        const int16_t rawtemp = temp_hotend[e].raw * tdir; // normal direction, +rawtemp, else -rawtemp
+        const bool heater_on = (temp_hotend[e].target > 0
+          || TERN0(PIDTEMP, temp_hotend[e].soft_pwm_amount) > 0
+        );
+        if (rawtemp > temp_range[e].raw_max * tdir) 
+        {
+          SERIAL_PRINTF("capture: rawtemp %d, temp_range.raw_max %d\n", 
+                                  rawtemp,    temp_range[e].raw_max);
+          max_temp_error((heater_id_t)e);
+        }
+        if (heater_on && rawtemp < temp_range[e].raw_min * tdir && !is_preheating(e)) {
+          #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
+            if (++consecutive_low_temperature_error[e] >= MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED)
+          #endif
+              min_temp_error((heater_id_t)e);
+        }
+        #ifdef MAX_CONSECUTIVE_LOW_TEMPERATURE_ERROR_ALLOWED
+          else
+            consecutive_low_temperature_error[e] = 0;
+        #endif
+      }
+    }
+
+  #endif // HAS_HOTEND
+
+  #if HAS_HEATED_BED
+    #if TEMPDIR(BED) < 0
+      #define BEDCMP(A,B) ((A)<(B))
+    #else
+      #define BEDCMP(A,B) ((A)>(B))
+    #endif
+    const bool bed_on = (temp_bed.target > 0) || TERN0(PIDTEMPBED, temp_bed.soft_pwm_amount > 0);
+    if (BEDCMP(temp_bed.raw, maxtemp_raw_BED)) max_temp_error(H_BED);
+    if (bed_on && BEDCMP(mintemp_raw_BED, temp_bed.raw)) min_temp_error(H_BED);
+  #endif
+
+  #if HAS_HEATED_CHAMBER
+    #if TEMPDIR(CHAMBER) < 0
+      #define CHAMBERCMP(A,B) ((A)<(B))
+    #else
+      #define CHAMBERCMP(A,B) ((A)>(B))
+    #endif
+    const bool chamber_on = (temp_chamber.target > 0);
+    if (CHAMBERCMP(temp_chamber.raw, maxtemp_raw_CHAMBER)) max_temp_error(H_CHAMBER);
+    if (chamber_on && CHAMBERCMP(mintemp_raw_CHAMBER, temp_chamber.raw)) min_temp_error(H_CHAMBER);
+  #endif
+>>>>>>> 1775bfc02e (add mingda files)
 }
 
 /**
@@ -3272,6 +3530,14 @@ public:
  *  - Advance Babysteps
  *  - Endstop polling
  *  - Planner clean buffer
+ * 
+ * 处理与温度相关的各种~1KHz任务
+ *  - 加热器PWM (~1KHz与定标器)
+ *  - LCD按键轮询(~500Hz)
+ *  - 启动/读取一个ADC传感器
+ *  - 循序渐进
+ *  - 结束轮询
+ *  - 规划器清洁缓冲区
  */
 void Temperature::isr() {
 
@@ -3599,8 +3865,14 @@ void Temperature::isr() {
    * This gives each ADC 0.9765ms to charge up.
    */
   #define ACCUMULATE_ADC(obj) do{ \
+<<<<<<< HEAD
     if (!hal.adc_ready()) next_sensor_state = adc_sensor_state; \
     else obj.sample(hal.adc_value()); \
+=======
+    if (!HAL_ADC_READY()) next_sensor_state = adc_sensor_state; \
+    else obj.sample(HAL_READ_ADC()); \
+    /*rtt.printf("adc %d\n", HAL_READ_ADC());*/ \
+>>>>>>> 1775bfc02e (add mingda files)
   }while(0)
 
   ADCSensorState next_sensor_state = adc_sensor_state < SensorsReady ? (ADCSensorState)(int(adc_sensor_state) + 1) : StartSampling;
@@ -3785,7 +4057,7 @@ void Temperature::isr() {
   //
   // Additional ~1kHz Tasks
   //
-
+  // 执行babystep任务
   #if ENABLED(BABYSTEPPING) && DISABLED(INTEGRATED_BABYSTEPPING)
     babystep.task();
   #endif

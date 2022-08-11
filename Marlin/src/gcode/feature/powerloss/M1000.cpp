@@ -90,6 +90,31 @@ void GcodeSuite::M1000() {
     else
       recovery.resume();
   }
+ #ifdef HAS_UDISK
+  else if (plr_flag) {
+    if (parser.seen('S')) {
+      #if HAS_LCD_MENU
+        ui.goto_screen(menu_job_recovery);
+      #elif ENABLED(DWIN_CREALITY_LCD)
+        recovery.dwin_flag = true;
+      #elif ENABLED(EXTENSIBLE_UI)
+        ExtUI::onPowerLossResume();
+      #else
+        SERIAL_ECHO_MSG("Resume requires LCD.");
+      #endif
+    }
+    else if (parser.seen('C')) {
+      #if HAS_LCD_MENU
+        lcd_power_loss_recovery_cancel();
+      #else
+        recovery.cancel();
+      #endif
+      TERN_(EXTENSIBLE_UI, ExtUI::onPrintTimerStopped());
+    }
+    else
+      recovery.resume();
+  }
+ #endif
   else
     plr_error(recovery.info.valid_head ? F("No") : F("Invalid"));
 

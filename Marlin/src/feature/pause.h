@@ -36,6 +36,8 @@ typedef struct {
 
 #include "../libs/nozzle.h"
 
+#include "../lcd/extui/lib/tsc/TSC_Menu.h"
+
 enum PauseMode : char {
   PAUSE_MODE_SAME,
   PAUSE_MODE_PAUSE_PRINT,
@@ -87,11 +89,17 @@ bool pause_print(
   DXC_PARAMS                                                  // Dual-X-Carriage extruder index
 );
 
+<<<<<<< HEAD
 void wait_for_confirmation(
   const bool      is_reload=false,                            // Reload Filament? (otherwise Resume Print)
   const int8_t    max_beep_count=0                            // Beep alert for attention
   DXC_PARAMS                                                  // Dual-X-Carriage extruder index
 );
+=======
+void no_filament_carry_on_printf(const bool is_reload=false, const int8_t max_beep_count=0 DXC_PARAMS);
+
+void wait_for_confirmation(const bool is_reload=false, const int8_t max_beep_count=0 DXC_PARAMS);
+>>>>>>> 1775bfc02e (add mingda files)
 
 void resume_print(
   const_float_t   slow_load_length=0,                         // (mm) Slow Load Length for finishing move

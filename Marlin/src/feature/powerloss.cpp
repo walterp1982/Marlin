@@ -30,12 +30,17 @@
 
 #include "powerloss.h"
 #include "../core/macros.h"
+#ifdef HAS_UDISK
+  #include "../lcd/extui/lib/tsc/Menu/PrintUdisk.h"
+  #include "../udisk/udiskPrint.h"
+#endif
 
 bool PrintJobRecovery::enabled; // Initialized by settings.load()
 
 SdFile PrintJobRecovery::file;
 job_recovery_info_t PrintJobRecovery::info;
 const char PrintJobRecovery::filename[5] = "/PLR";
+const char PrintJobRecovery::filename1[6] = "0:PLR";
 uint8_t PrintJobRecovery::queue_index_r;
 uint32_t PrintJobRecovery::cmd_sdpos, // = 0
          PrintJobRecovery::sdpos[BUFSIZE];
@@ -65,11 +70,39 @@ uint32_t PrintJobRecovery::cmd_sdpos, // = 0
 #define DEBUG_OUT ENABLED(DEBUG_POWER_LOSS_RECOVERY)
 #include "../core/debug_out.h"
 
+
+
+
 PrintJobRecovery recovery;
+#ifdef HAS_UDISK
+  typedef enum{
+    SDCARD = 0,
+    USBDISK
+  };
+  uint16_t plr_num = 0;
+  uint8_t sd_or_udisk = 0;
+  bool plr_flag = false;
+  FIL udiskfile;
+  DIR udiskFolder;
+#endif
+
+#ifdef __cplusplus
+  extern "C"{
+#endif
+    extern uint8_t udiskMounted;
+#ifdef __cplusplus
+  }
+#endif
 
 #ifndef POWER_LOSS_PURGE_LEN
   #define POWER_LOSS_PURGE_LEN 0
 #endif
+<<<<<<< HEAD
+=======
+// #ifndef POWER_LOSS_ZRAISE
+//   #define POWER_LOSS_ZRAISE 2     // Move on loss with backup power, or on resume without it
+// #endif
+>>>>>>> 1775bfc02e (add mingda files)
 
 #if DISABLED(BACKUP_POWER_SUPPLY)
   #undef POWER_LOSS_RETRACT_LEN   // No retract at outage without backup power
@@ -82,6 +115,53 @@ PrintJobRecovery recovery;
  * Clear the recovery info
  */
 void PrintJobRecovery::init() { memset(&info, 0, sizeof(info)); }
+
+// init the pin PC6
+// extern "C" {
+// void EXIT6_Init(void){
+//   // 设置好中断线和GPIO映射关系，设置好中断触发模式
+//   GPIO_InitTypeDef GPIO_Initure;
+//   __HAL_RCC_GPIOC_CLK_ENABLE();     // enabled the pin_c clock
+
+//   GPIO_Initure.Pin = GPIO_PIN_6;    // the 6 pin
+//   GPIO_Initure.Mode = GPIO_MODE_IT_FALLING; // External Interrupt Mode with Falling edge trigger detection ,下降沿触发的外部中断
+//   GPIO_Initure.Pull = GPIO_PULLUP;  // Pull-up activation, 默认上拉
+//   HAL_GPIO_Init(GPIOC, &GPIO_Initure);
+
+//   // 设置中断优先级
+//   HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0); // Sets the priority of an interrupt.设置中断的优先级。优先级最高（抢占优先级为1，子优先级为1）
+//   HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);         // 使能中断线5~9.
+// }
+// void EXTI9_5_IRQHandler(){
+//   if(print_job_timer.isRunning()) recovery.outage();
+//   __HAL_GPIO_EXTI_CLEAR_IT(GPIO_PIN_6);     // 清除中断6引脚的标志位
+// }
+// }
+#if PIN_EXISTS(POWER_LOSS)
+void StartSavePLR(void){
+  thermalManager.disable_all_heaters();
+  disable_all_steppers();
+  // recovery.write();
+  if(print_job_timer.isRunning()) recovery.outage();
+}
+#endif
+void PrintJobRecovery::setup(){
+  #if PIN_EXISTS(POWER_LOSS)
+   #if 0
+    #if ENABLED(POWER_LOSS_PULL)
+      #if POWER_LOSS_STATE == LOW
+        SET_INPUT_PULLUP(POWER_LOSS_PIN);
+      #else
+        SET_INPUT_PULLDOWN(POWER_LOSS_PIN);
+      #endif
+    #else
+      SET_INPUT(POWER_LOSS_PIN);
+    #endif
+   #else
+    stm32_interrupt_enable(GPIOC, GPIO_PIN_6, StartSavePLR, GPIO_MODE_IT_FALLING);
+   #endif
+  #endif
+}
 
 /**
  * Enable or disable then call changed()
@@ -99,7 +179,7 @@ void PrintJobRecovery::enable(const bool onoff) {
 void PrintJobRecovery::changed() {
   if (!enabled)
     purge();
-  else if (IS_SD_PRINTING())
+  else if (IS_SD_PRINTING() TERN_( HAS_UDISK, || UDiskPrint ))
     save(true);
 }
 
@@ -112,6 +192,7 @@ bool PrintJobRecovery::check() {
   //if (!card.isMounted()) card.mount();
   bool success = false;
   if (card.isMounted()) {
+    TERN_( HAS_UDISK, sd_or_udisk = SDCARD;)
     load();
     success = valid();
     if (!success)
@@ -121,13 +202,38 @@ bool PrintJobRecovery::check() {
   }
   return success;
 }
-
+#ifdef HAS_UDISK
+  void PrintJobRecovery::check_u() {
+    // 检测到有插U盘且SD卡没有检测到断电文件
+    if(udiskMounted && plr_num<150){
+      sd_or_udisk = USBDISK;
+      // if() return;
+      plr_num++;
+      if(!(load(sd_or_udisk))){
+        plr_flag = false;
+        // return;
+      }
+      else{
+        plr_flag = true;
+        plr_num = 1000;
+        queue.inject_P(PSTR("M1000S"));
+      }
+    }
+  }
+#endif
 /**
  * Delete the recovery file and clear the recovery data
  */
 void PrintJobRecovery::purge() {
   init();
-  card.removeJobRecoveryFile();
+  #ifdef HAS_UDISK
+  // if(plr_flag){
+    f_unlink(filename1);
+    plr_flag = false;
+  // }
+  #endif
+  // else if(!plr_flag)
+    card.removeJobRecoveryFile();
 }
 
 /**
@@ -141,12 +247,39 @@ void PrintJobRecovery::load() {
   }
   debug(F("Load"));
 }
+#ifdef HAS_UDISK
+  bool PrintJobRecovery::load(uint8_t ifudisk) {
+    debug(PSTR("Load"));
+    // f_opendir(&udiskFolder, "/");
+    if (f_open(&udiskfile, filename1, FA_READ) == FR_OK) {
+      UINT res;
+      init();
+      f_read(&udiskfile,&info, sizeof(info), &res);
+      f_close(&udiskfile);
+      return true;
+    }
+    // f_closedir(&udiskFolder);
+    return false;
+  }
+#endif
 
 /**
  * Set info fields that won't change
  */
 void PrintJobRecovery::prepare() {
+<<<<<<< HEAD
   card.getAbsFilenameInCWD(info.sd_filename);  // SD filename
+=======
+ #ifdef HAS_UDISK
+  if(UDiskPrint)
+  {
+    memset(info.sd_filename, 0, sizeof(info.sd_filename));
+    strcpy(info.sd_filename, filePath);
+  }
+  else
+ #endif
+    card.getAbsFilename(info.sd_filename);  // SD filename
+>>>>>>> 1775bfc02e (add mingda files)
   cmd_sdpos = 0;
 }
 
@@ -191,9 +324,13 @@ void PrintJobRecovery::save(const bool force/*=false*/, const float zraise/*=POW
 
     info.feedrate = uint16_t(MMS_TO_MMM(feedrate_mm_s));
     info.zraise = zraise;
+<<<<<<< HEAD
     info.flag.raised = raised;                      // Was Z raised before power-off?
 
     TERN_(GCODE_REPEAT_MARKERS, info.stored_repeat = repeat);
+=======
+    info.z_current_position = (float)(planner.position.z)/800.0;
+>>>>>>> 1775bfc02e (add mingda files)
     TERN_(HAS_HOME_OFFSET, info.home_offset = home_offset);
     TERN_(HAS_POSITION_SHIFT, info.position_shift = position_shift);
     E_TERN_(info.active_extruder = active_extruder);
@@ -239,7 +376,15 @@ void PrintJobRecovery::save(const bool force/*=false*/, const float zraise/*=POW
     info.flag.dryrun = !!(marlin_debug_flags & MARLIN_DEBUG_DRYRUN);
     info.flag.allow_cold_extrusion = TERN0(PREVENT_COLD_EXTRUSION, thermalManager.allow_cold_extrude);
 
-    write();
+    //
+    if(IS_SD_PRINTING())
+      write();
+   #ifdef HAS_UDISK
+    else if(UDiskPrint){
+      info.sdpos = udisk.getPrintSize();
+      usb_write();
+    }
+   #endif
   }
 }
 
@@ -324,21 +469,51 @@ void PrintJobRecovery::save(const bool force/*=false*/, const float zraise/*=POW
       kill(GET_TEXT_F(MSG_OUTAGE_RECOVERY));
   }
 
+<<<<<<< HEAD
 #endif // POWER_LOSS_PIN || DEBUG_POWER_LOSS_RECOVERY
 
+=======
+#endif
+static uint8_t test_file[] = "1234567890abcdefghijklmnopqrstuvwxyz";
+>>>>>>> 1775bfc02e (add mingda files)
 /**
  * Save the recovery info the recovery file
  */
 void PrintJobRecovery::write() {
+<<<<<<< HEAD
 
   debug(F("Write"));
+=======
+ #if 1
+  debug(PSTR("Write"));
+>>>>>>> 1775bfc02e (add mingda files)
 
   open(false);
   file.seekSet(0);
   const int16_t ret = file.write(&info, sizeof(info));
   if (ret == -1) DEBUG_ECHOLNPGM("Power-loss file write failed.");
   if (!file.close()) DEBUG_ECHOLNPGM("Power-loss file close failed.");
+ #else
+  open(false);
+  file.seekSet(0);
+  file.write(&test_file, sizeof(test_file));
+  file.write(&test_file, sizeof(test_file));
+  file.write(&test_file, sizeof(test_file));
+  file.close();
+ #endif
 }
+#ifdef HAS_UDISK
+  void PrintJobRecovery::usb_write() {
+    if(!udiskMounted) return;
+    debug(PSTR("usb Write"));
+    FRESULT fp = f_open(&udiskfile, filename1, FA_WRITE | FA_OPEN_ALWAYS);
+    fp = f_lseek(&udiskfile,0);
+    UINT ret = 0;
+    fp = f_write(&udiskfile,&info, sizeof(info), &ret);
+    if (ret <= 0) DEBUG_ECHOLNPGM("Power-loss file write failed.");
+    if (f_close(&udiskfile)) DEBUG_ECHOLNPGM("Power-loss file close failed.");
+  }
+#endif
 
 /**
  * Resume the saved print job
@@ -406,6 +581,7 @@ void PrintJobRecovery::resume() {
           ), dtostrf(z_now, 1, 3, str_1));
     gcode.process_subcommands_now(cmd);
 
+<<<<<<< HEAD
   #elif DISABLED(BELTPRINTER)
 
     #if ENABLED(POWER_LOSS_RECOVER_ZHOME) && defined(POWER_LOSS_ZHOME_POS)
@@ -429,6 +605,44 @@ void PrintJobRecovery::resume() {
 
     // Home XY with no Z raise
     gcode.process_subcommands_now(F("G28R0XY")); // No raise during G28
+=======
+    // 先加热，防止模具脱落
+    #if HAS_HEATED_BED
+      const int16_t bt = info.target_temperature_bed;
+      if (bt) {
+        // Restore the bed temperature
+        sprintf_P(cmd, PSTR("M190 S%i"), bt);
+        gcode.process_subcommands_now(cmd);
+      }
+    #endif
+
+    // Restore all hotend temperatures
+    #if HAS_HOTEND
+      HOTEND_LOOP() {
+        const int16_t et = info.target_temperature[e];
+        if (et) {
+          #if HAS_MULTI_HOTEND
+            sprintf_P(cmd, PSTR("T%i S"), e);
+            gcode.process_subcommands_now(cmd);
+          #endif
+          sprintf_P(cmd, PSTR("M109 S%i"), et);
+          gcode.process_subcommands_now(cmd);
+        }
+      }
+    #endif
+
+    // Z轴稍微抬起
+    gcode.process_subcommands_now("G0 Z5");
+    // 复位XY轴
+    gcode.process_subcommands_now_P(PSTR(
+      "G28R0"                               // No raise during G28
+      #if IS_CARTESIAN && DISABLED(POWER_LOSS_RECOVER_ZHOME)
+        "XY"                                // Don't home Z on Cartesian unless overridden
+      #endif
+    ));
+    // Z轴回到原处
+    gcode.process_subcommands_now("G0 Z0");
+>>>>>>> 1775bfc02e (add mingda files)
 
   #endif
 
@@ -482,6 +696,7 @@ void PrintJobRecovery::resume() {
     #endif
   #endif
 
+<<<<<<< HEAD
   // Restore all hotend temperatures
   #if HAS_HOTEND
     HOTEND_LOOP() {
@@ -496,6 +711,8 @@ void PrintJobRecovery::resume() {
       }
     }
   #endif
+=======
+>>>>>>> 1775bfc02e (add mingda files)
 
   // Restore the previously active tool (with no_move)
   #if HAS_MULTI_EXTRUDER || HAS_MULTI_HOTEND
@@ -525,6 +742,18 @@ void PrintJobRecovery::resume() {
     fwretract.current_hop = info.retract_hop;
   #endif
 
+<<<<<<< HEAD
+=======
+  // #if HAS_LEVELING
+  //   // Restore leveling state before 'G92 Z' to ensure
+  //   // the Z stepper count corresponds to the native Z.
+  //   if (info.fade || info.leveling) {
+  //     sprintf_P(cmd, PSTR("M420 S%i Z%s"), int(info.leveling), dtostrf(info.fade, 1, 1, str_1));
+  //     gcode.process_subcommands_now(cmd);
+  //   }
+  // #endif
+
+>>>>>>> 1775bfc02e (add mingda files)
   #if ENABLED(GRADIENT_MIX)
     memcpy(&mixer.gradient, &info.gradient, sizeof(info.gradient));
   #endif
@@ -544,17 +773,40 @@ void PrintJobRecovery::resume() {
     gcode.process_subcommands_now(F("G12"));
   #endif
 
+<<<<<<< HEAD
   // Move back over to the saved XY
   sprintf_P(cmd, PSTR("G1X%sY%sF3000"),
+=======
+  // Move back to the saved Z
+  dtostrf(info.z_current_position, 1, 3, str_1);
+  // dtostrf(info.current_position.z, 1, 3, str_1);
+  #if Z_HOME_DIR > 0 || ENABLED(POWER_LOSS_RECOVER_ZHOME)
+    sprintf_P(cmd, PSTR("G1 Z%s F200"), str_1);
+  #else
+    // gcode.process_subcommands_now_P(PSTR("G1 Z0 F200")); // 导致Z轴向下移的罪魁祸首
+    sprintf_P(cmd, PSTR("G92.9 Z%s"), str_1);
+  #endif
+  gcode.process_subcommands_now(cmd);
+
+  // dtostrf(info.current_position.z, 1, 3, str_1); // 之前为了解决轴向下移的方法，向上移。
+  // sprintf_P(cmd, PSTR("G1 Z%s"), str_1);
+  // gcode.process_subcommands_now(cmd);
+
+  // Move back to the saved XY
+  sprintf_P(cmd, PSTR("G1 X%s Y%s F3000"),
+>>>>>>> 1775bfc02e (add mingda files)
     dtostrf(info.current_position.x, 1, 3, str_1),
     dtostrf(info.current_position.y, 1, 3, str_2)
   );
   gcode.process_subcommands_now(cmd);
 
+<<<<<<< HEAD
   // Move back down to the saved Z for printing
   sprintf_P(cmd, PSTR("G1Z%sF600"), dtostrf(z_print, 1, 3, str_1));
   gcode.process_subcommands_now(cmd);
 
+=======
+>>>>>>> 1775bfc02e (add mingda files)
   // Restore the feedrate
   sprintf_P(cmd, PSTR("G1F%d"), info.feedrate);
   gcode.process_subcommands_now(cmd);
@@ -578,17 +830,52 @@ void PrintJobRecovery::resume() {
     marlin_debug_flags |= MARLIN_DEBUG_ECHO;
   #endif
 
-  // Continue to apply PLR when a file is resumed!
-  enable(true);
+  #if HAS_LEVELING
+    // Restore leveling state before 'G92 Z' to ensure
+    // the Z stepper count corresponds to the native Z.
+    if (info.fade || info.leveling) {
+      sprintf_P(cmd, PSTR("M420 S%i Z%s"), int(info.leveling), dtostrf(info.fade, 1, 1, str_1));
+      gcode.process_subcommands_now(cmd);
+    }
+  #endif
+
+  // // Continue to apply PLR when a file is resumed!
+  // enable(true);
 
   // Resume the SD file from the last position
   char *fn = info.sd_filename;
+<<<<<<< HEAD
   sprintf_P(cmd, M23_STR, fn);
   gcode.process_subcommands_now(cmd);
   sprintf_P(cmd, PSTR("M24S%ldT%ld"), resume_sdpos, info.print_job_elapsed);
   gcode.process_subcommands_now(cmd);
+=======
+  TERN_( HAS_UDISK, if(!plr_flag){ )
+    if(*fn == '/') fn++;
+    extern const char M23_STR[];
+    sprintf_P(cmd, M23_STR, fn);
+    gcode.process_subcommands_now(cmd);
+    sprintf_P(cmd, PSTR("M24 S%ld T%ld"), resume_sdpos, info.print_job_elapsed);
+    gcode.process_subcommands_now(cmd);
+>>>>>>> 1775bfc02e (add mingda files)
 
-  TERN_(DEBUG_POWER_LOSS_RECOVERY, marlin_debug_flags = old_flags);
+    TERN_(DEBUG_POWER_LOSS_RECOVERY, marlin_debug_flags = old_flags);
+ #ifdef HAS_UDISK
+  }
+  else{
+    f_stat(info.sd_filename, &workFileinfo);
+    memset(filePath, 0, sizeof(filePath));
+    strcpy(filePath, info.sd_filename);
+    f_open(&udisk_fp, filePath,  FA_READ | FA_OPEN_ALWAYS);
+    f_lseek(&udisk_fp, resume_sdpos);
+    UDiskPrint = true;UDiskPrintFinish = false;UDiskStopPrint=false;
+    udisk.resumeUdiskPrint(workFileinfo.fsize, resume_sdpos, info.print_job_elapsed);
+    gcode.process_subcommands_now("M24\n");
+  }
+ #endif
+ 
+  // Continue to apply PLR when a file is resumed!
+  enable(true);
 }
 
 #if ENABLED(DEBUG_POWER_LOSS_RECOVERY)
@@ -605,6 +892,7 @@ void PrintJobRecovery::resume() {
         }
         DEBUG_EOL();
 
+<<<<<<< HEAD
         DEBUG_ECHOLNPGM("feedrate: ", info.feedrate);
 
         DEBUG_ECHOLNPGM("zraise: ", info.zraise, " ", info.flag.raised ? "(before)" : "");
@@ -614,6 +902,11 @@ void PrintJobRecovery::resume() {
           LOOP_L_N(i, info.stored_repeat.index)
             DEBUG_ECHOLNPGM("..... sdpos: ", info.stored_repeat.marker.sdpos, " count: ", info.stored_repeat.marker.counter);
         #endif
+=======
+        DEBUG_ECHOLNPAIR("zraise: ", info.zraise);
+        
+        DEBUG_ECHOLNPAIR("z_current_position: ", info.z_current_position);
+>>>>>>> 1775bfc02e (add mingda files)
 
         #if HAS_HOME_OFFSET
           DEBUG_ECHOPGM("home_offset: ");

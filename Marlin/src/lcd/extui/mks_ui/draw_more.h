@@ -21,6 +21,7 @@
  */
 #pragma once
 
+<<<<<<< HEAD:Marlin/src/lcd/extui/mks_ui/draw_more.h
 #ifdef __cplusplus
   extern "C" {
 #endif
@@ -30,4 +31,16 @@ void lv_clear_more();
 
 #ifdef __cplusplus
   }
+=======
+void watchdog_init();
+void HAL_watchdog_refresh();
+
+#ifdef __cplusplus
+// int cpp_func(int input);
+extern "C" {
+#endif
+int c_func();
+#ifdef __cplusplus
+}
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/HAL/STM32/watchdog.h
 #endif

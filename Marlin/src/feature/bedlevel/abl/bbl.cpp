@@ -46,6 +46,7 @@ xy_int8_t LevelingBilinear::cached_g;
 
 /**
  * Extrapolate a single point from its neighbors
+ * 从它的邻居推断出一个点
  */
 void LevelingBilinear::extrapolate_one_point(const uint8_t x, const uint8_t y, const int8_t xdir, const int8_t ydir) {
   if (!isnan(z_values[x][y])) return;
@@ -153,8 +154,13 @@ void LevelingBilinear::extrapolate_unprobed_bed_level() {
     }
 }
 
+<<<<<<< HEAD:Marlin/src/feature/bedlevel/abl/bbl.cpp
 void LevelingBilinear::print_leveling_grid(const bed_mesh_t* _z_values /*= NULL*/) {
   // print internal grid(s) or just the one passed as a parameter
+=======
+// 将双线性水平网格值发送到串口
+void print_bilinear_leveling_grid() {
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/feature/bedlevel/abl/abl.cpp
   SERIAL_ECHOLNPGM("Bilinear Leveling Grid:");
   print_2d_array(GRID_MAX_POINTS_X, GRID_MAX_POINTS_Y, 3, _z_values ? *_z_values[0] : z_values[0]);
 
@@ -283,29 +289,38 @@ void LevelingBilinear::refresh_bed_level() {
 #endif
 
 // Get the Z adjustment for non-linear bed leveling
+<<<<<<< HEAD:Marlin/src/feature/bedlevel/abl/bbl.cpp
 float LevelingBilinear::get_z_correction(const xy_pos_t &raw) {
+=======
+// 得到非线性床层调平的Z形调整
+float bilinear_z_offset(const xy_pos_t &raw) {
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/feature/bedlevel/abl/abl.cpp
 
   static float z1, d2, z3, d4, L, D;
 
   static xy_pos_t ratio;
 
   // Whole units for the grid line indices. Constrained within bounds.
+<<<<<<< HEAD:Marlin/src/feature/bedlevel/abl/bbl.cpp
   static xy_int8_t thisg, nextg;
+=======
+  static xy_int8_t thisg, nextg, lastg { -99, -99 };  // 当前网格，下一个网格，最后一个网格
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/feature/bedlevel/abl/abl.cpp
 
   // XY relative to the probed area
   xy_pos_t rel = raw - grid_start.asFloat();
 
   #if ENABLED(EXTRAPOLATE_BEYOND_GRID)
-    #define FAR_EDGE_OR_BOX 2   // Keep using the last grid box
+    #define FAR_EDGE_OR_BOX 2   // Keep using the last grid box // 继续使用最后一个网格盒
   #else
-    #define FAR_EDGE_OR_BOX 1   // Just use the grid far edge
+    #define FAR_EDGE_OR_BOX 1   // Just use the grid far edge // 用远处的网格就行了
   #endif
 
   if (cached_rel.x != rel.x) {
     cached_rel.x = rel.x;
     ratio.x = rel.x * ABL_BG_FACTOR(x);
     const float gx = constrain(FLOOR(ratio.x), 0, ABL_BG_POINTS_X - (FAR_EDGE_OR_BOX));
-    ratio.x -= gx;      // Subtract whole to get the ratio within the grid box
+    ratio.x -= gx;      // Subtract whole to get the ratio within the grid box // 减去整体以得到网格框内的比例
 
     #if DISABLED(EXTRAPOLATE_BEYOND_GRID)
       // Beyond the grid maintain height at grid edges
@@ -374,7 +389,11 @@ float LevelingBilinear::get_z_correction(const xy_pos_t &raw) {
    * Prepare a bilinear-leveled linear move on Cartesian,
    * splitting the move where it crosses grid borders.
    */
+<<<<<<< HEAD:Marlin/src/feature/bedlevel/abl/bbl.cpp
   void LevelingBilinear::line_to_destination(const_feedRate_t scaled_fr_mm_s, uint16_t x_splits, uint16_t y_splits) {
+=======
+  void bilinear_line_to_destination(const feedRate_t &scaled_fr_mm_s, uint16_t x_splits, uint16_t y_splits) {
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/feature/bedlevel/abl/abl.cpp
     // Get current and destination cells for this line
     xy_int_t c1 { CELL_INDEX(x, current_position.x), CELL_INDEX(y, current_position.y) },
              c2 { CELL_INDEX(x, destination.x), CELL_INDEX(y, destination.y) };

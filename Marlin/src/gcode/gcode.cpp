@@ -165,6 +165,7 @@ int8_t GcodeSuite::get_target_e_stepper_from_command(const int8_t dval/*=-1*/) {
   return -1;
 }
 
+extern bool UDiskPrint;
 /**
  * Set XYZ...E destination and feedrate from the current GCode command
  *
@@ -206,7 +207,7 @@ void GcodeSuite::get_destination_from_command() {
 
   #if ENABLED(POWER_LOSS_RECOVERY) && !PIN_EXISTS(POWER_LOSS)
     // Only update power loss recovery on moves with E
-    if (recovery.enabled && IS_SD_PRINTING() && seen.e && (seen.x || seen.y))
+    if (recovery.enabled && (IS_SD_PRINTING() TERN_(HAS_UDISK, || UDiskPrint)) && seen.e && (seen.x || seen.y))
       recovery.save();
   #endif
 
@@ -625,6 +626,7 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 191: M191(); break;                                  // M191: Wait for chamber temperature to reach target
       #endif
 
+<<<<<<< HEAD
       #if HAS_TEMP_PROBE
         case 192: M192(); break;                                  // M192: Wait for probe temp
       #endif
@@ -634,6 +636,8 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 193: M193(); break;                                  // M193: Wait for cooler temperature to reach target
       #endif
 
+=======
+>>>>>>> 1775bfc02e (add mingda files)
       #if ENABLED(AUTO_REPORT_POSITION)
         case 154: M154(); break;                                  // M154: Set position auto-report interval
       #endif
@@ -1071,12 +1075,21 @@ void GcodeSuite::process_parsed_command(const bool no_ok/*=false*/) {
         case 1001: M1001(); break;                                // M1001: [INTERNAL] Handle SD completion
       #endif
 
+<<<<<<< HEAD
       #if ENABLED(DGUS_LCD_UI_MKS)
         case 1002: M1002(); break;                                // M1002: [INTERNAL] Tool-change and Relative E Move
       #endif
 
       #if ENABLED(UBL_MESH_WIZARD)
         case 1004: M1004(); break;                                // M1004: UBL Mesh Wizard
+=======
+      #if ENABLED(USART_LCD)
+        case 1107: M1107(); break;
+        case 1108: M1108(); break;
+        case 1109: M1109(); break;
+        case 1110: M1110(); break;
+        case 1111: M1111(); break;
+>>>>>>> 1775bfc02e (add mingda files)
       #endif
 
       #if ENABLED(MAX7219_GCODE)

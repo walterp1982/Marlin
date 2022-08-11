@@ -129,7 +129,7 @@ extern "C" {
 // Below ADC, DAC and PWM definitions already done in the core
 // Could be redefined here if needed
 // ADC resolution is 12bits
-//#define ADC_RESOLUTION          12
+#define ADC_RESOLUTION          12
 //#define DACC_RESOLUTION         12
 
 // PWM resolution
@@ -267,6 +267,9 @@ extern "C" {
 #define NUM_ANALOG_INPUTS       19
 #define NUM_ANALOG_FIRST        75
 
+// ADC resolution is 12bits
+#define ADC_RESOLUTION          10
+
 // On-board LED pin number
 #define LED_D2                  PF10
 #define LED_D1                  PF9
@@ -276,13 +279,13 @@ extern "C" {
 
 #endif // ARDUINO_BLACK_F407ZE || ARDUINO_BLACK_F407ZG
 
-#define LED_BUILTIN             LED_D2
-#define LED_GREEN               LED_D2
+// #define LED_BUILTIN             LED_D2
+// #define LED_GREEN               LED_D2
 
 // On-board user button
-#define BTN_K0                  PE4
-#define BTN_K1                  PE3
-#define USER_BTN                BTN_K0
+// #define BTN_K0                  PE4
+// #define BTN_K1                  PE3
+// #define USER_BTN                BTN_K0
 
 // Below SPI and I2C definitions already done in the core
 // Could be redefined here if differs from the default one
@@ -293,13 +296,15 @@ extern "C" {
 #define PIN_SPI_SS              PB12
 //#define PIN_SPI_SS1             PB0 // W25Q16 (on board flash)
 
-// I2C Definitions
-#define PIN_WIRE_SDA            PB7
-#define PIN_WIRE_SCL            PB6
 
 // Timer Definitions
+<<<<<<< HEAD
 // Do not use timer used by PWM pins when possible. See PinMap_PWM in PeripheralPins.c
 #define TIMER_TONE              TIM6  // TIMER_TONE must be defined in this file
+=======
+//Do not use timer used by PWM pins when possible. See PinMap_PWM in PeripheralPins.c
+#define TIMER_TONE              TIM3
+>>>>>>> 1775bfc02e (add mingda files)
 
 // Do not use basic timer: OC is required
 #define TIMER_SERVO             TIM2  // TODO: advanced-control timers don't work
@@ -316,8 +321,8 @@ extern "C" {
 
 // Default pin used for 'Serial' instance (ex: ST-Link)
 // Mandatory for Firmata
-#define PIN_SERIAL_RX           PA10
-#define PIN_SERIAL_TX           PA9
+// #define PIN_SERIAL_RX           PA10
+// #define PIN_SERIAL_TX           PA9
 
 /* Extra HAL modules */
 #define HAL_DAC_MODULE_ENABLED

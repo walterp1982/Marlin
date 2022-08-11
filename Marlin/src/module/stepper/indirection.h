@@ -46,7 +46,7 @@ void reset_stepper_drivers();    // Called by settings.load / settings.reset
 // X Stepper
 #ifndef X_ENABLE_INIT
   #define X_ENABLE_INIT() SET_OUTPUT(X_ENABLE_PIN)
-  #define X_ENABLE_WRITE(STATE) WRITE(X_ENABLE_PIN,STATE)
+  #define X_ENABLE_WRITE(STATE) WRITE(X_ENABLE_PIN,STATE)   // write PD3 low, this is enable the X motor
   #define X_ENABLE_READ() bool(READ(X_ENABLE_PIN))
 #endif
 #ifndef X_DIR_INIT
@@ -61,6 +61,7 @@ void reset_stepper_drivers();    // Called by settings.load / settings.reset
 #define X_STEP_READ() bool(READ(X_STEP_PIN))
 
 // Y Stepper
+<<<<<<< HEAD
 #if HAS_Y_AXIS
   #ifndef Y_ENABLE_INIT
     #define Y_ENABLE_INIT() SET_OUTPUT(Y_ENABLE_PIN)
@@ -77,9 +78,16 @@ void reset_stepper_drivers();    // Called by settings.load / settings.reset
     #define Y_STEP_WRITE(STATE) WRITE(Y_STEP_PIN,STATE)
   #endif
   #define Y_STEP_READ() bool(READ(Y_STEP_PIN))
+=======
+#ifndef Y_ENABLE_INIT
+  #define Y_ENABLE_INIT() SET_OUTPUT(Y_ENABLE_PIN)
+  #define Y_ENABLE_WRITE(STATE) WRITE(Y_ENABLE_PIN,STATE)   // write PC12 low, this is enable the Y motor
+  #define Y_ENABLE_READ() bool(READ(Y_ENABLE_PIN))
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 // Z Stepper
+<<<<<<< HEAD
 #if HAS_Z_AXIS
   #ifndef Z_ENABLE_INIT
     #define Z_ENABLE_INIT() SET_OUTPUT(Z_ENABLE_PIN)
@@ -96,6 +104,12 @@ void reset_stepper_drivers();    // Called by settings.load / settings.reset
     #define Z_STEP_WRITE(STATE) WRITE(Z_STEP_PIN,STATE)
   #endif
   #define Z_STEP_READ() bool(READ(Z_STEP_PIN))
+=======
+#ifndef Z_ENABLE_INIT
+  #define Z_ENABLE_INIT() SET_OUTPUT(Z_ENABLE_PIN)
+  #define Z_ENABLE_WRITE(STATE) WRITE(Z_ENABLE_PIN,STATE)   // write PC9 low, this is enable the Z motor
+  #define Z_ENABLE_READ() bool(READ(Z_ENABLE_PIN))
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 // X2 Stepper

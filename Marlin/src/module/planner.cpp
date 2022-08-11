@@ -74,6 +74,8 @@
 
 #include "../MarlinCore.h"
 
+#include "../lcd/extui/lib/tsc/Menu/Home.h"
+
 #if HAS_LEVELING
   #include "../feature/bedlevel/bedlevel.h"
 #endif
@@ -185,7 +187,7 @@ float Planner::mm_per_step[DISTINCT_AXES];      // (mm) Millimeters per step
 #endif
 
 #if HAS_LEVELING
-  bool Planner::leveling_active = false; // Flag that auto bed leveling is enabled
+  bool Planner::leveling_active = false; // 自动床调平已启用的标志
   #if ABL_PLANAR
     matrix_3x3 Planner::bed_level_matrix; // Transform to compensate for bed level
   #endif
@@ -1424,7 +1426,51 @@ void Planner::check_axes_activity() {
   //
   TERN_(HAS_TAIL_FAN_SPEED, if (fans_need_update) sync_fan_speeds(tail_fan_speed));
 
+<<<<<<< HEAD
   TERN_(AUTOTEMP, autotemp_task());
+=======
+    #if FAN_KICKSTART_TIME > 0
+      static millis_t fan_kick_end[FAN_COUNT] = { 0 };
+      #define KICKSTART_FAN(f)                         \
+        if (tail_fan_speed[f]) {                       \
+          millis_t ms = millis();                      \
+          if (fan_kick_end[f] == 0) {                  \
+            fan_kick_end[f] = ms + FAN_KICKSTART_TIME; \
+            tail_fan_speed[f] = 255;                   \
+          } else if (PENDING(ms, fan_kick_end[f]))     \
+            tail_fan_speed[f] = 255;                   \
+        } else fan_kick_end[f] = 0
+    #else
+      #define KICKSTART_FAN(f) NOOP
+    #endif
+
+    #if FAN_MIN_PWM != 0 || FAN_MAX_PWM != 255
+      #define CALC_FAN_SPEED(f) (tail_fan_speed[f] ? map(tail_fan_speed[f], 1, 255, FAN_MIN_PWM, FAN_MAX_PWM) : FAN_OFF_PWM)
+    #else
+      #define CALC_FAN_SPEED(f) (tail_fan_speed[f] ?: FAN_OFF_PWM)
+    #endif
+
+    #if ENABLED(FAN_SOFT_PWM)
+      #define _FAN_SET(F) thermalManager.soft_pwm_amount_fan[F] = CALC_FAN_SPEED(F);
+    #elif ENABLED(FAST_PWM_FAN)
+      #define _FAN_SET(F) set_pwm_duty(FAN##F##_PIN, CALC_FAN_SPEED(F));
+    #else
+      #define _FAN_SET(F) analogWrite(pin_t(FAN##F##_PIN), CALC_FAN_SPEED(F));
+    #endif
+    #define FAN_SET(F) do{ KICKSTART_FAN(F); _FAN_SET(F); }while(0)
+
+    // TERN_(HAS_FAN0, FAN_SET(0)); // the fan don't init here, du
+    // TERN_(HAS_FAN1, FAN_SET(1));
+    // TERN_(HAS_FAN2, FAN_SET(2));
+    // TERN_(HAS_FAN3, FAN_SET(3));
+    // TERN_(HAS_FAN4, FAN_SET(4));
+    // TERN_(HAS_FAN5, FAN_SET(5));
+    // TERN_(HAS_FAN6, FAN_SET(6));
+    // TERN_(HAS_FAN7, FAN_SET(7));
+  #endif // HAS_FAN
+
+  TERN_(AUTOTEMP, getHighESpeed());
+>>>>>>> 1775bfc02e (add mingda files)
 
   #if ENABLED(BARICUDA)
     TERN_(HAS_HEATER_1, hal.set_pwm_duty(pin_t(HEATER_1_PIN), tail_valve_pressure));
@@ -1597,6 +1643,7 @@ void Planner::check_axes_activity() {
   /**
    * rx, ry, rz - Cartesian positions in mm
    *              Leveled XYZ on completion
+   * 获取某坐标的z轴调平数据
    */
   void Planner::apply_leveling(xyz_pos_t &raw) {
     if (!leveling_active) return;
@@ -1733,6 +1780,15 @@ void Planner::finish_and_disable() {
 }
 
 /**
+ * 设置轴的位置
+ * @param axis 需要设置的轴
+ * @param distance 需要设置的位置（步数）
+ * 
+ */
+void Planner::set_axis_position_mm(const AxisEnum axis, const float distance){
+  stepper.set_position(axis, distance);
+}
+/**
  * Get an axis position according to stepper position(s)
  * For CORE machines apply translation from ABC to XYZ.
  */
@@ -1786,9 +1842,21 @@ float Planner::get_axis_position_mm(const AxisEnum axis) {
 }
 
 /**
+<<<<<<< HEAD
  * Block until the planner is finished processing
  */
 void Planner::synchronize() { while (busy()) idle(); }
+=======
+ * 阻塞，直到执行/清除所有缓冲步骤
+ * 一但发现停止电机的标志位启动，就不在阻塞，使用需注意
+ */
+void Planner::synchronize() {
+  while ((has_blocks_queued() || cleaning_buffer_counter
+      || TERN0(EXTERNAL_CLOSED_LOOP_CONTROLLER, CLOSED_LOOP_WAITING())) 
+      && (!stop_home)
+  ) idle();
+}
+>>>>>>> 1775bfc02e (add mingda files)
 
 /**
  * @brief Add a new linear movement to the planner queue (in terms of steps).
@@ -1872,6 +1940,7 @@ bool Planner::_populate_block(
   OPTARG(HAS_DIST_MM_ARG, const xyze_float_t &cart_dist_mm)
   , feedRate_t fr_mm_s, const uint8_t extruder, const PlannerHints &hints
 ) {
+<<<<<<< HEAD
   int32_t LOGICAL_AXIS_LIST(
     de = target.e - position.e,
     da = target.a - position.a,
@@ -1884,6 +1953,19 @@ bool Planner::_populate_block(
     dv = target.v - position.v,
     dw = target.w - position.w
   );
+=======
+
+  // 计算要各个轴移动的步进数（可正可负）
+  const int32_t da = target.a - position.a,
+                db = target.b - position.b,
+                dc = target.c - position.c;
+
+  #if EXTRUDERS
+    int32_t de = target.e - position.e;
+  #else
+    constexpr int32_t de = 0;
+  #endif
+>>>>>>> 1775bfc02e (add mingda files)
 
   /* <-- add a slash to enable
     SERIAL_ECHOLNPGM(
@@ -1921,7 +2003,7 @@ bool Planner::_populate_block(
   #if EITHER(PREVENT_COLD_EXTRUSION, PREVENT_LENGTHY_EXTRUDE)
     if (de) {
       #if ENABLED(PREVENT_COLD_EXTRUSION)
-        if (thermalManager.tooColdToExtrude(extruder)) {
+        if (thermalManager.tooColdToExtrude(extruder)) {  // 温度达不到目标，下面会清零。
           position.e = target.e; // Behave as if the move really took place, but ignore E part
           TERN_(HAS_POSITION_FLOAT, position_float.e = target_float.e);
           de = 0; // no difference
@@ -1930,7 +2012,7 @@ bool Planner::_populate_block(
       #endif // PREVENT_COLD_EXTRUSION
       #if ENABLED(PREVENT_LENGTHY_EXTRUDE)
         const float e_steps = ABS(de * e_factor[extruder]);
-        const float max_e_steps = settings.axis_steps_per_mm[E_AXIS_N(extruder)] * (EXTRUDE_MAXLENGTH);
+        const float max_e_steps = settings.axis_steps_per_mm[E_AXIS_N(extruder)] * (EXTRUDE_MAXLENGTH);   // 单次最大挤出量
         if (e_steps > max_e_steps) {
           #if ENABLED(MIXING_EXTRUDER)
             bool ignore_e = false;
@@ -1953,10 +2035,41 @@ bool Planner::_populate_block(
   #endif // PREVENT_COLD_EXTRUSION || PREVENT_LENGTHY_EXTRUDE
 
   // Compute direction bit-mask for this block
+<<<<<<< HEAD
   axis_bits_t dm = 0;
   #if ANY(CORE_IS_XY, MARKFORGED_XY, MARKFORGED_YX)
     if (da < 0) SBI(dm, X_HEAD);                  // Save the toolhead's true direction in X
     if (db < 0) SBI(dm, Y_HEAD);                  // ...and Y
+=======
+  uint8_t dm = 0;   // 记录各个轴的方向
+  #if CORE_IS_XY
+    if (da < 0) SBI(dm, X_HEAD);                // Save the real Extruder (head) direction in X Axis
+    if (db < 0) SBI(dm, Y_HEAD);                // ...and Y
+    if (dc < 0) SBI(dm, Z_AXIS);
+    if (da + db < 0) SBI(dm, A_AXIS);           // Motor A direction
+    if (CORESIGN(da - db) < 0) SBI(dm, B_AXIS); // Motor B direction
+  #elif CORE_IS_XZ
+    if (da < 0) SBI(dm, X_HEAD);                // Save the real Extruder (head) direction in X Axis
+    if (db < 0) SBI(dm, Y_AXIS);
+    if (dc < 0) SBI(dm, Z_HEAD);                // ...and Z
+    if (da + dc < 0) SBI(dm, A_AXIS);           // Motor A direction
+    if (CORESIGN(da - dc) < 0) SBI(dm, C_AXIS); // Motor C direction
+  #elif CORE_IS_YZ
+    if (da < 0) SBI(dm, X_AXIS);
+    if (db < 0) SBI(dm, Y_HEAD);                // Save the real Extruder (head) direction in Y Axis
+    if (dc < 0) SBI(dm, Z_HEAD);                // ...and Z
+    if (db + dc < 0) SBI(dm, B_AXIS);           // Motor B direction
+    if (CORESIGN(db - dc) < 0) SBI(dm, C_AXIS); // Motor C direction
+  #elif ENABLED(MARKFORGED_XY)
+    if (da < 0) SBI(dm, X_HEAD);                // Save the real Extruder (head) direction in X Axis
+    if (db < 0) SBI(dm, Y_HEAD);                // ...and Y
+    if (dc < 0) SBI(dm, Z_AXIS);
+    if (da + db < 0) SBI(dm, A_AXIS);           // Motor A direction
+    if (db < 0) SBI(dm, B_AXIS);                // Motor B direction
+  #else
+    if (da < 0) SBI(dm, X_AXIS);
+    if (db < 0) SBI(dm, Y_AXIS);
+>>>>>>> 1775bfc02e (add mingda files)
     if (dc < 0) SBI(dm, Z_AXIS);
   #endif
   #if IS_CORE
@@ -2002,7 +2115,7 @@ bool Planner::_populate_block(
   #if HAS_EXTRUDERS
     if (de < 0) SBI(dm, E_AXIS);
     const float esteps_float = de * e_factor[extruder];
-    const uint32_t esteps = ABS(esteps_float) + 0.5f;
+    const uint32_t esteps = ABS(esteps_float) + 0.5f;   // ABS(N)，将N变为正整数，+0.5是为了四舍五入
   #else
     constexpr uint32_t esteps = 0;
   #endif
@@ -3112,7 +3225,7 @@ bool Planner::buffer_segment(const abce_pos_t &abce
       , fr_mm_s, extruder, hints
   )) return false;
 
-  stepper.wake_up();
+  stepper.wake_up();  // 唤醒步进电机的定时器
   return true;
 } // buffer_segment()
 

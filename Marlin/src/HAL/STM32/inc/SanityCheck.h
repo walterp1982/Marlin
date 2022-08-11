@@ -28,9 +28,15 @@
 //  #error "SPINDLE_LASER_PWM_PIN must use SERVO0, SERVO1 or SERVO3 connector"
 //#endif
 
+<<<<<<< HEAD
 #if ENABLED(FAST_PWM_FAN)
   #error "FAST_PWM_FAN is not yet implemented for this platform."
 #endif
+=======
+// #if ENABLED(FAST_PWM_FAN) || SPINDLE_LASER_FREQUENCY
+//   #error "Features requiring Hardware PWM (FAST_PWM_FAN, SPINDLE_LASER_FREQUENCY) are not yet supported on STM32."
+// #endif
+>>>>>>> 1775bfc02e (add mingda files)
 
 #if ENABLED(SDCARD_EEPROM_EMULATION) && DISABLED(SDSUPPORT)
   #undef SDCARD_EEPROM_EMULATION // Avoid additional error noise

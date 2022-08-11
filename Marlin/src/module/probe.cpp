@@ -103,6 +103,8 @@
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../core/debug_out.h"
 
+#include "stepper/indirection.h"
+
 Probe probe;
 
 xyz_pos_t Probe::offset; // Initialized by settings.load()
@@ -272,6 +274,7 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
 
   typedef struct { float fr_mm_min; xyz_pos_t where; } mag_probe_move_t;
 
+<<<<<<< HEAD
   inline void run_deploy_moves_script() {
     #ifdef MAG_MOUNTED_DEPLOY_1
       constexpr mag_probe_move_t deploy_1 = MAG_MOUNTED_DEPLOY_1;
@@ -293,6 +296,34 @@ xyz_pos_t Probe::offset; // Initialized by settings.load()
       constexpr mag_probe_move_t deploy_5 = MAG_MOUNTED_DEPLOY_5;
       do_blocking_move_to(deploy_5.where, MMM_TO_MMS(deploy_5.fr_mm_min));
     #endif
+=======
+  #ifndef DELAY_BEFORE_PROBING
+    #define DELAY_BEFORE_PROBING 25
+  #endif
+
+  void Probe::set_probing_paused(const bool dopause) {
+    TERN_(PROBING_HEATERS_OFF, thermalManager.pause(dopause));
+    TERN_(PROBING_FANS_OFF, thermalManager.set_fans_paused(dopause));
+    #if ENABLED(PROBING_STEPPERS_OFF)
+      IF_DISABLED(DELTA, static uint8_t old_known);
+      if (dopause) {
+        #if DISABLED(DELTA)
+          old_known = axis_known_position;
+          DISABLE_AXIS_X();
+          DISABLE_AXIS_Y();
+        #endif
+        disable_e_steppers();
+      }
+      else {
+        #if DISABLED(DELTA)
+          if (TEST(old_known, X_AXIS)) ENABLE_AXIS_X();
+          if (TEST(old_known, Y_AXIS)) ENABLE_AXIS_Y();
+        #endif
+        axis_known_position = old_trusted;
+      }
+    #endif
+    if (dopause) safe_delay(_MAX(DELAY_BEFORE_PROBING, 25));
+>>>>>>> 1775bfc02e (add mingda files)
   }
 
   inline void run_stow_moves_script() {
@@ -849,7 +880,12 @@ float Probe::run_z_probe(const bool sanity_check/*=true*/) {
  *   - Raise to the BETWEEN height
  * - Return the probed Z position
  */
+<<<<<<< HEAD
 float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRaise raise_after/*=PROBE_PT_NONE*/, const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/, const bool sanity_check/*=true*/) {
+=======
+float Probe::probe_at_point(const float &rx, const float &ry, const ProbePtRaise raise_after/*=PROBE_PT_NONE*/,
+                            const uint8_t verbose_level/*=0*/, const bool probe_relative/*=true*/, const bool sanity_check/*=true*/) {
+>>>>>>> 1775bfc02e (add mingda files)
   DEBUG_SECTION(log_probe, "Probe::probe_at_point", DEBUGGING(LEVELING));
 
   if (DEBUGGING(LEVELING)) {
@@ -884,6 +920,15 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
 
   TERN_(BD_SENSOR, return bdl.read());
 
+  DISABLE_STEPPER_X();
+  DISABLE_STEPPER_E0();
+  WRITE(CALIB_PIN, LOW);
+  SERIAL_PRINTF("***********wait 500ms probe***************\n");
+  safe_delay(500);
+  WRITE(CALIB_PIN, HIGH);
+  SERIAL_PRINTF("***********wait 100ms probe***************\n");
+  safe_delay(100);
+
   float measured_z = NAN;
   if (!deploy()) {
     measured_z = run_z_probe(sanity_check) + offset.z;
@@ -908,7 +953,13 @@ float Probe::probe_at_point(const_float_t rx, const_float_t ry, const ProbePtRai
       SERIAL_ERROR_MSG(STR_ERR_PROBING_FAILED);
     #endif
   }
+<<<<<<< HEAD
   DEBUG_ECHOLNPGM("measured_z: ", measured_z);
+=======
+
+  WRITE(CALIB_PIN, LOW);  //reset hall calib
+  
+>>>>>>> 1775bfc02e (add mingda files)
   return measured_z;
 }
 

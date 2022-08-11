@@ -29,6 +29,11 @@
 // Local defines
 // ------------------------
 
+<<<<<<< HEAD
+=======
+// #define NUM_HARDWARE_TIMERS 15
+
+>>>>>>> 1775bfc02e (add mingda files)
 // Default timer priorities. Override by specifying alternate priorities in the board pins file.
 // The TONE timer is not present here, as it currently cannot be set programmatically. It is set
 // by defining TIM_IRQ_PRIO in the variant.h or platformio.ini file, which adjusts the default
@@ -76,8 +81,14 @@
 #elif defined(STM32F401xC) || defined(STM32F401xE)
   #define MCU_STEP_TIMER  9           // STM32F401 has no TIM6, TIM7, or TIM8
   #define MCU_TEMP_TIMER 10
+<<<<<<< HEAD
 #elif defined(STM32F4xx) || defined(STM32F7xx) || defined(STM32H7xx)
   #define MCU_STEP_TIMER  6
+=======
+#elif defined(STM32F4xx) || defined(STM32F7xx)
+  #define MCU_TIMER_RATE (F_CPU / 2)
+  #define MCU_STEP_TIMER  5           // STM32F401 has no TIM6, TIM7, or TIM8
+>>>>>>> 1775bfc02e (add mingda files)
   #define MCU_TEMP_TIMER 14           // TIM7 is consumed by Software Serial if used.
 #endif
 

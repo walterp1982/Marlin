@@ -261,6 +261,7 @@ void report_current_position_projected();
   extern AutoReporter<PositionReport> position_auto_reporter;
 #endif
 
+<<<<<<< HEAD
 #if EITHER(FULL_REPORT_TO_HOST_FEATURE, REALTIME_REPORTING_COMMANDS)
   #define HAS_GRBL_STATE 1
   /**
@@ -300,6 +301,8 @@ void report_current_position_projected();
   #endif
 #endif
 
+=======
+>>>>>>> 1775bfc02e (add mingda files)
 void get_cartesian_from_steppers();
 void set_current_from_steppers_for_axis(const AxisEnum axis);
 

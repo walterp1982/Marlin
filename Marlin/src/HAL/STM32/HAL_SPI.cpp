@@ -47,12 +47,23 @@ static SPISettings spiConfig;
   #include "../shared/Delay.h"
 
   void spiBegin(void) {
+<<<<<<< HEAD
     #if PIN_EXISTS(SD_SS)
       OUT_WRITE(SD_SS_PIN, HIGH);
     #endif
     OUT_WRITE(SD_SCK_PIN, HIGH);
     SET_INPUT(SD_MISO_PIN);
     OUT_WRITE(SD_MOSI_PIN, HIGH);
+=======
+   #if 0
+    OUT_WRITE(SDSS, HIGH);
+   #else
+    OUT_WRITE(SS_PIN, HIGH);
+   #endif
+    OUT_WRITE(SCK_PIN, HIGH);
+    SET_INPUT(MISO_PIN);
+    OUT_WRITE(MOSI_PIN, HIGH);
+>>>>>>> 1775bfc02e (add mingda files)
   }
 
   // Use function with compile-time value so we can actually reach the desired frequency
@@ -78,7 +89,8 @@ static SPISettings spiConfig;
       case SPI_SPEED_6:      delaySPIFunc = &delaySPI_2000; break;  // desired:   250,000  actual: ~210K
       default:               delaySPIFunc = &delaySPI_4000; break;  // desired:   125,000  actual: ~123K
     }
-    SPI.begin();
+    spiBegin();
+    // SPI.begin();
   }
 
   // Begin SPI transaction, set clock, bit order, data mode

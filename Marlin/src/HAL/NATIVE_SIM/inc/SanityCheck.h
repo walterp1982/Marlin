@@ -35,9 +35,13 @@
 #endif
 
 #if HAS_TMC_SW_SERIAL
+<<<<<<< HEAD:Marlin/src/HAL/NATIVE_SIM/inc/SanityCheck.h
   #error "TMC220x Software Serial is not supported on LINUX."
 #endif
 
 #if ENABLED(POSTMORTEM_DEBUGGING)
   #error "POSTMORTEM_DEBUGGING is not yet supported on LINUX."
+=======
+  // #error "TMC220x Software Serial is not supported on this platform."
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/HAL/STM32_F4_F7/inc/SanityCheck.h
 #endif

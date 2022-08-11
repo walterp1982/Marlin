@@ -36,8 +36,13 @@
   #include "../../feature/bedlevel/bedlevel.h"
 #endif
 
+<<<<<<< HEAD
 #if ENABLED(BD_SENSOR)
   #include "../../feature/bedlevel/bdl/bdl.h"
+=======
+#if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+  #include "../../feature/babystep.h"
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 #if ENABLED(SENSORLESS_HOMING)
@@ -66,6 +71,15 @@
 
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../core/debug_out.h"
+#include "../../lcd/extui/lib/tsc/Menu/Print.h"
+
+#ifdef AUTO_BED_LEVELING_BILINEAR
+  #if ENABLED(LEVELING_OFFSET)
+    #include "../../lcd/extui/lib/tsc/Menu/LevelingOffset.h"
+  #endif
+  #include "../../lcd/extui/lib/tsc/Menu/BabyStep.h"
+#endif
+#include "../../lcd/extui/lib/tsc/Menu/Home.h"
 
 #if ENABLED(QUICK_HOME)
 
@@ -203,6 +217,15 @@
  *  Z   Home to the Z endstop
  */
 void GcodeSuite::G28() {
+  can_print_flag = false;   // 不能进行打印
+  #if ENABLED(AUTO_BED_LEVELING_BILINEAR) && ENABLED(LEVELING_OFFSET)
+    if((babystep_value>0.0001) || (babystep_value<-0.0001)){
+      setLevelingOffset(babystep_value);
+      babystep_value = 0.0f;
+    }
+    saveOffset();           // 在复位之前先尝试保存z-offset的数据
+  #endif
+
   DEBUG_SECTION(log_G28, "G28", DEBUGGING(LEVELING));
   if (DEBUGGING(LEVELING)) log_machine_info();
 
@@ -236,6 +259,7 @@ void GcodeSuite::G28() {
     return;
   }
 
+<<<<<<< HEAD
   #if ENABLED(FULL_REPORT_TO_HOST_FEATURE)
     const M_StateEnum old_grblstate = M_State_grbl;
     set_and_report_grblstate(M_HOMING);
@@ -245,6 +269,9 @@ void GcodeSuite::G28() {
   TERN_(EXTENSIBLE_UI, ExtUI::onHomingStart());
 
   planner.synchronize();          // Wait for planner moves to finish!
+=======
+  planner.synchronize();          // 等待计划者(planner)的移动完成!
+>>>>>>> 1775bfc02e (add mingda files)
 
   SET_SOFT_ENDSTOP_LOOSE(false);  // Reset a leftover 'loose' motion state
 
@@ -416,15 +443,28 @@ void GcodeSuite::G28() {
       do_z_clearance(z_homing_height, TEST(axis_known_position, Z_AXIS), DISABLED(UNKNOWN_Z_NO_RAISE));
     }
 
+<<<<<<< HEAD
     // Diagonal move first if both are homing
     TERN_(QUICK_HOME, if (doX && doY) quick_home_xy());
 
     // Home Y (before X)
     if (ENABLED(HOME_Y_BEFORE_X) && (doY || TERN0(CODEPENDENT_XY_HOMING, doX)))
+=======
+    #if ENABLED(QUICK_HOME)
+
+      if (doX && doY && !stop_home) quick_home_xy();
+
+    #endif
+
+    // Home Y (before X)
+    if ((ENABLED(HOME_Y_BEFORE_X) && (doY || (ENABLED(CODEPENDENT_XY_HOMING) && doX))) && (!stop_home)){
+>>>>>>> 1775bfc02e (add mingda files)
       homeaxis(Y_AXIS);
+      // planner.position.y=0.0f;
+    }
 
     // Home X
-    if (doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X))) {
+    if ((doX || (doY && ENABLED(CODEPENDENT_XY_HOMING) && DISABLED(HOME_Y_BEFORE_X))) && (!stop_home)) {
 
       #if ENABLED(DUAL_X_CARRIAGE)
 
@@ -445,6 +485,7 @@ void GcodeSuite::G28() {
       #else
 
         homeaxis(X_AXIS);
+        // planner.position.x=0.0f;
 
       #endif
     }
@@ -455,8 +496,10 @@ void GcodeSuite::G28() {
     #endif
 
     // Home Y (after X)
-    if (DISABLED(HOME_Y_BEFORE_X) && doY)
+    if ((DISABLED(HOME_Y_BEFORE_X) && doY) && (!stop_home)){
       homeaxis(Y_AXIS);
+      // planner.position.y=0.0f;
+    }
 
     #if BOTH(FOAMCUTTER_XYUV, HAS_J_AXIS)
       // Home J (after Y)
@@ -465,6 +508,7 @@ void GcodeSuite::G28() {
 
     TERN_(IMPROVE_HOMING_RELIABILITY, end_slow_homing(saved_motion_state));
 
+<<<<<<< HEAD
     #if ENABLED(FOAMCUTTER_XYUV)
       // skip homing of unused Z axis for foamcutters
       if (doZ) set_axis_is_at_home(Z_AXIS);
@@ -476,6 +520,10 @@ void GcodeSuite::G28() {
             stepper.set_all_z_lock(false);
             stepper.set_separate_multi_axis(false);
           #endif
+=======
+      if (doZ && (!stop_home)) {
+        TERN_(BLTOUCH, bltouch.init());
+>>>>>>> 1775bfc02e (add mingda files)
 
           #if ENABLED(Z_SAFE_HOMING)
             if (TERN1(POWER_LOSS_RECOVERY, !parser.seen_test('H'))) home_z_safely(); else homeaxis(Z_AXIS);
@@ -486,6 +534,7 @@ void GcodeSuite::G28() {
         }
       #endif
 
+<<<<<<< HEAD
       SECONDARY_AXIS_CODE(
         if (doI) homeaxis(I_AXIS),
         if (doJ) homeaxis(J_AXIS),
@@ -495,6 +544,14 @@ void GcodeSuite::G28() {
         if (doW) homeaxis(W_AXIS)
       );
     #endif
+=======
+        probe.move_z_after_homing();
+        // planner.position.z=0.0f;
+
+      } // doZ
+
+    #endif // Z_HOME_DIR < 0
+>>>>>>> 1775bfc02e (add mingda files)
 
     sync_plan_position();
 
@@ -601,6 +658,35 @@ void GcodeSuite::G28() {
   if (ENABLED(NANODLP_Z_SYNC) && (doZ || ENABLED(NANODLP_ALL_AXIS)))
     SERIAL_ECHOLNPGM(STR_Z_MOVE_COMP);
 
+<<<<<<< HEAD
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(old_grblstate));
 
+=======
+  #if HAS_L64XX
+    // Set L6470 absolute position registers to counts
+    // constexpr *might* move this to PROGMEM.
+    // If not, this will need a PROGMEM directive and an accessor.
+    static constexpr AxisEnum L64XX_axis_xref[MAX_L64XX] = {
+      X_AXIS, Y_AXIS, Z_AXIS,
+      X_AXIS, Y_AXIS, Z_AXIS, Z_AXIS,
+      E_AXIS, E_AXIS, E_AXIS, E_AXIS, E_AXIS, E_AXIS
+    };
+    for (uint8_t j = 1; j <= L64XX::chain[0]; j++) {
+      const uint8_t cv = L64XX::chain[j];
+      L64xxManager.set_param((L64XX_axis_t)cv, L6470_ABS_POS, stepper.position(L64XX_axis_xref[cv]));
+    }
+  #endif
+
+  can_print_flag = true;    // 可以进入打印
+  stop_home = false;        // 关闭停止复位标志，防干扰
+  
+  #ifdef AUTO_BED_LEVELING_BILINEAR
+    old_baby_step_value = getBabyStepZAxisTotalMM();  // 临时babystep数据清零
+  #endif
+  
+  #if ENABLED(USART_LCD)
+    char send_baby[] = {0x5A, 0xA5, 0x08, 0x82, 0x2C, 0x20, 0x30, 0x00, 0x00, 0x00, 0x00};
+    send_hexPGM(send_baby, 11);
+  #endif
+>>>>>>> 1775bfc02e (add mingda files)
 }

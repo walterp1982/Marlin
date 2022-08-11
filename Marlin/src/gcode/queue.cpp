@@ -37,6 +37,11 @@ GCodeQueue queue;
 #include "../MarlinCore.h"
 #include "../core/bug_on.h"
 
+#if ENABLED(HAS_UDISK)
+  #include "../lcd/extui/lib/tsc/Menu/PrintUdisk.h"
+  #include "../udisk/udiskPrint.h"
+#endif
+
 #if ENABLED(PRINTER_EVENT_LEDS)
   #include "../feature/leds/printer_event_leds.h"
 #endif
@@ -53,6 +58,7 @@ GCodeQueue queue;
   #include "../feature/powerloss.h"
 #endif
 
+<<<<<<< HEAD
 #if ENABLED(GCODE_REPEAT_MARKERS)
   #include "../feature/repeat.h"
 #endif
@@ -66,10 +72,23 @@ GCodeQueue::RingBuffer GCodeQueue::ring_buffer = { 0 };
 #if NO_TIMEOUTS > 0
   static millis_t last_command_time = 0;
 #endif
+=======
+#if ENABLED(BABYSTEPPING)
+  #include "../feature/babystep.h"
+#endif
+
+/**
+ * GCode line number handling. Hosts may opt to include line numbers when
+ * sending commands to Marlin, and lines will be checked for sequentiality.
+ * M110 N<int> sets the current line number.
+ */
+long GCodeQueue::last_N[NUM_SERIAL];
+>>>>>>> 1775bfc02e (add mingda files)
 
 /**
  * Track buffer underruns
  */
+<<<<<<< HEAD
 #if ENABLED(BUFFER_MONITORING)
   uint32_t GCodeQueue::command_buffer_underruns = 0,
            GCodeQueue::planner_buffer_underruns = 0;
@@ -79,6 +98,11 @@ GCodeQueue::RingBuffer GCodeQueue::ring_buffer = { 0 };
            GCodeQueue::max_planner_buffer_empty_duration = 0,
            GCodeQueue::command_buffer_empty_at = 0,
            GCodeQueue::planner_buffer_empty_at = 0;
+=======
+uint8_t GCodeQueue::length = 0,  // 队列中命令的计数
+        GCodeQueue::index_r = 0, // Ring buffer read position
+        GCodeQueue::index_w = 0; // Ring buffer write position
+>>>>>>> 1775bfc02e (add mingda files)
 
   uint8_t GCodeQueue::auto_buffer_report_interval;
   millis_t GCodeQueue::next_buffer_report_ms;
@@ -99,8 +123,39 @@ PGM_P GCodeQueue::injected_commands_P; // = nullptr
  */
 char GCodeQueue::injected_commands[64]; // = { 0 }
 
+<<<<<<< HEAD
 void GCodeQueue::RingBuffer::commit_command(bool skip_ok
   OPTARG(HAS_MULTI_SERIAL, serial_index_t serial_ind/*=-1*/)
+=======
+GCodeQueue::GCodeQueue() {
+  // Send "ok" after commands by default
+  LOOP_L_N(i, COUNT(send_ok)) send_ok[i] = true;
+}
+
+/**
+ * Check whether there are any commands yet to be executed
+ */
+bool GCodeQueue::has_commands_queued() {
+  return queue.length || injected_commands_P || injected_commands[0];
+}
+
+/**
+ * 清除Marlin命令队列
+ */
+void GCodeQueue::clear() {
+  index_r = index_w = length = 0;
+  injected_commands_P = nullptr;    // 指针指向空
+  memset(injected_commands, 0, sizeof(injected_commands));  // 清空缓冲数组
+}
+
+/**
+ * Once a new command is in the ring buffer, call this to commit it
+ */
+void GCodeQueue::_commit_command(bool say_ok
+  #if HAS_MULTI_SERIAL
+    , int16_t p/*=-1*/
+  #endif
+>>>>>>> 1775bfc02e (add mingda files)
 ) {
   commands[index_w].skip_ok = skip_ok;
   TERN_(HAS_MULTI_SERIAL, commands[index_w].port = serial_ind);
@@ -230,6 +285,11 @@ void GCodeQueue::enqueue_now_P(PGM_P const pgcode) {
     if (!c) break;
     p += i + 1;
   }
+}
+
+//This is executive the command
+void GCodeQueue::executiveCommand(const char *cmd){
+  gcode.process_subcommands_now_P(cmd);
 }
 
 /**
@@ -395,6 +455,7 @@ inline bool process_line_done(uint8_t &sis, char (&buff)[MAX_CMD_SIZE], int &ind
  * Get all commands waiting on the serial port and queue them.
  * Exit when the buffer is full or when no more characters are
  * left on the serial port.
+ * 获取串口上等待的所有命令并将它们排队。当缓冲区已满或串口上没有更多字符时退出。
  */
 void GCodeQueue::get_serial_commands() {
   #if ENABLED(BINARY_FILE_TRANSFER)
@@ -458,7 +519,27 @@ void GCodeQueue::get_serial_commands() {
 
         while (*command == ' ') command++;                   // Skip leading spaces
         char *npos = (*command == 'N') ? command : nullptr;  // Require the N parameter to start the line
-
+      
+       #if ENABLED(BABYSTEPPING)
+        if(strstr_P(command, PSTR("M290")) != NULL){
+          gcode.process_subcommands_now_P(command);
+          return;
+        }
+       #endif
+       #if ENABLED(USART_LCD)
+        if((strstr_P(command, PSTR("M104")) != NULL) || (strstr_P(command, PSTR("M140")) != NULL)){
+          gcode.process_subcommands_now_P(command);
+          return;
+        }
+        else if((strstr_P(command, PSTR("M1107")) != NULL) || 
+                (strstr_P(command, PSTR("M1110")) != NULL) ||
+                (strstr_P(command, PSTR("M1111")) != NULL))
+        {
+          gcode.process_subcommands_now_P(command);
+          return;
+        }
+       #endif
+      
         if (npos) {
 
           const bool M110 = !!strstr_P(command, PSTR("M110"));
@@ -551,6 +632,7 @@ void GCodeQueue::get_serial_commands() {
    * or until the end of the file is reached. Because this method
    * always receives complete command-lines, they can go directly
    * into the main command queue.
+   * 从SD卡中获取字节，直到命令缓冲区满为止或者一直到文件的末尾。因为这种方法总是接收完整的命令行，他们可以直接进入进入主命令队列。
    */
   inline void GCodeQueue::get_sdcard_commands() {
     static uint8_t sd_input_state = PS_NORMAL;
@@ -559,7 +641,12 @@ void GCodeQueue::get_serial_commands() {
     if (!IS_SD_FETCHING()) return;
 
     int sd_count = 0;
+<<<<<<< HEAD
     while (!ring_buffer.full() && !card.eof()) {
+=======
+    bool card_eof = card.eof();
+    while (length < BUFSIZE-2 && !card_eof) {
+>>>>>>> 1775bfc02e (add mingda files)
       const int16_t n = card.get();
       card_eof = card.eof();
       if (n < 0) { SERIAL_ERROR_MSG(MSG_SD_ERR_READ); continue; }
@@ -614,6 +701,54 @@ void GCodeQueue::get_serial_commands() {
 
 #endif // SDSUPPORT
 
+#if ENABLED(HAS_UDISK)
+
+  /**
+   * 从U盘文件中获取行，直到命令缓冲区满为止或者一直到文件的末尾。因为这种方法总是接收完整的命令行，他们可以直接进入进入主命令队列。
+   */
+  #define UDISKBUFSIZE 128
+  inline void GCodeQueue::get_udisk_commands() {
+    // static uint8_t sd_input_state = PS_NORMAL;
+    static TCHAR rbuf[UDISKBUFSIZE] = {0};
+    static TCHAR *rbuf_p = NULL;
+    static int rres = 0;
+    static int error_num = 0;
+    
+    if (!udisk.isUdiskPrint()) return;
+
+    int sd_count = 0;uint8_t i=0;
+    bool udisk_eof = udisk.eof();
+    while (length < BUFSIZE-2 && !udisk_eof) {
+      const int n = udisk.get(rbuf, sizeof(rbuf), &udisk_fp);
+      udisk_eof = udisk.eof();                              // 文件是否已经读取完毕
+      if(error_num >= 100){
+        // 读取失败
+        break;
+      }
+      if(n<=0 && !udisk_eof){
+        error_num++;
+        continue;
+      }else error_num = 0;
+
+      rbuf_p = rbuf;
+      // 跳过句首空格
+      for(i=0; i<UDISKBUFSIZE; i++){
+        if(*(rbuf_p) == ' ') rbuf_p++;
+        else break;
+      }
+      if(*rbuf_p == 'G' || *rbuf_p == 'M'){  //只挑G和M命令入队
+        enqueue_one_P(rbuf_p);
+        // SERIAL_ECHOLNPAIR("file:", rbuf_p);
+        // SERIAL_ECHOLNPAIR("fsize:", (int)udisk.getFileSize());
+        // SERIAL_ECHOLNPAIR("psize:", (int)udisk.getPrintSize());
+        // break;
+      }
+      if(udisk_eof) {udisk.fileHasFinish(&udisk_fp);SERIAL_ECHOLNPAIR("finish:", (int)udisk.getPrintSize());}// 文件读完
+      
+    }
+  }
+
+#endif // HAS_UDISK
 /**
  * Add to the circular command queue the next command from:
  *  - The command-injection queues (injected_commands_P, injected_commands)
@@ -623,9 +758,11 @@ void GCodeQueue::get_serial_commands() {
 void GCodeQueue::get_available_commands() {
   if (ring_buffer.full()) return;
 
-  get_serial_commands();
+  get_serial_commands();  // 获取串口的命令
 
-  TERN_(SDSUPPORT, get_sdcard_commands());
+  TERN_(SDSUPPORT, get_sdcard_commands());  // 获取sd卡内的命令
+
+  TERN_(HAS_UDISK, get_udisk_commands());
 }
 
 /**

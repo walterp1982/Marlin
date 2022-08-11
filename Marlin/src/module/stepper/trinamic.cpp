@@ -685,7 +685,19 @@ enum StealthIndex : uint8_t {
     chopconf.hend = chop_init.hend + 3;
     chopconf.hstrt = chop_init.hstrt - 1;
     TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
+    TERN_(SHORT_PROTECTION, chopconf.diss2g  = 1);
+    TERN_(SHORT_PROTECTION, chopconf.diss2vs = 1);
+    
     st.CHOPCONF(chopconf.sr);
+    
+    // TMC2208_n::CHOPCONF_t chopconf{0};
+    // chopconf.toff = chopper_timing.toff;
+    // chopconf.hstrt = chopper_timing.hstrt - 1;
+    // chopconf.hend = chopper_timing.hend + 3;
+    // chopconf.tbl = 0b01; // blank_time = 24
+    // chopconf.intpol = INTERPOLATE;
+    // TERN_(SQUARE_WAVE_STEPPING, chopconf.dedge = true);
+    // st.CHOPCONF(chopconf.sr);
 
     st.rms_current(mA, hold_multiplier);
     st.microsteps(microsteps);
@@ -1071,5 +1083,16 @@ void reset_trinamic_drivers() {
   #define SA_NO_TMC_SW_C(A) static_assert(1 >= count_tmc_sw_serial_matches(TMC_SW_DETAIL_ARGS(A), 0, COUNT(sanity_tmc_sw_details)), TMC_SWSERIAL_CONFLICT_MSG(A));
   MAP(SA_NO_TMC_SW_C, ALL_AXIS_NAMES)
 #endif
+
+uint32_t read_tmc_reg(uint8_t addr)
+{
+  // // stepperE0.test_connection();
+  // return stepperY.myreadreg(addr);
+}
+void write_tmc_reg(uint8_t addr, uint32_t regVal)
+{
+  // // stepperE0.test_connection();
+  // stepperY.mywritereg(addr, regVal);
+}
 
 #endif // HAS_TRINAMIC_CONFIG

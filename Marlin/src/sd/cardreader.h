@@ -24,6 +24,7 @@
 #include "../inc/MarlinConfig.h"
 
 #if ENABLED(SDSUPPORT)
+<<<<<<< HEAD
 
 extern const char M23_STR[], M24_STR[];
 
@@ -34,6 +35,13 @@ extern const char M23_STR[], M24_STR[];
   #if FOLDER_SORTING || ENABLED(SDSORT_GCODE)
     #define HAS_FOLDER_SORTING 1
   #endif
+=======
+  #ifndef SD_DETECT_PIN
+      #define SD_DETECT_PIN PE3
+  #endif
+#if BOTH(SDCARD_SORT_ALPHA, SDSORT_DYNAMIC_RAM)
+  #define SD_RESORT 1
+>>>>>>> 1775bfc02e (add mingda files)
 #endif
 
 #if ENABLED(SDCARD_RATHERRECENTFIRST) && DISABLED(SDCARD_SORT_ALPHA)
@@ -98,6 +106,8 @@ public:
   static card_flags_t flag;                         // Flags (above)
   static char filename[FILENAME_LENGTH],            // DOS 8.3 filename of the selected item
               longFilename[LONG_FILENAME_LENGTH];   // Long name of the selected item
+  
+  static uint32_t filetime;
 
   // Fast! binary file transfer
   #if ENABLED(BINARY_FILE_TRANSFER)
@@ -115,10 +125,17 @@ public:
   static void changeMedia(DiskIODriver *_driver) { driver = _driver; }
 
   static SdFile getroot() { return root; }
+  static SdFile* getrootp() { return &root; }
 
   static void mount();
   static void release();
+<<<<<<< HEAD
   static bool isMounted() { return flag.mounted; }
+=======
+  static inline bool isMounted() { return flag.mounted; }
+  static void ls();
+  static void getfilelist();
+>>>>>>> 1775bfc02e (add mingda files)
 
   // Handle media insert/remove
   static void manage_media();
@@ -152,6 +169,7 @@ public:
   static int8_t cdup();
   static uint16_t countFilesInWorkDir();
   static uint16_t get_num_Files();
+  static void clearDirPath();
 
   // Select a file
   static void selectFileByIndex(const uint16_t nr);
@@ -244,6 +262,8 @@ public:
   // TODO: rename to diskIODriver()
   static DiskIODriver* diskIODriver() { return driver; }
 
+  static bool is_dir_or_gcode(const dir_t &p,char *a);
+
   #if ENABLED(AUTO_REPORT_SD_STATUS)
     //
     // SD Auto Reporting
@@ -309,7 +329,11 @@ private:
       #endif
 
       #if (ENABLED(SDSORT_CACHE_NAMES) && DISABLED(SDSORT_DYNAMIC_RAM)) || NONE(SDSORT_CACHE_NAMES, SDSORT_USES_STACK)
+       #if ENABLED(SDCARD_SORT_CHRONOLOGICAL)  // 按时间顺序排序
+        static uint32_t sorttime[SDSORT_LIMIT];
+       #else
         static char sortnames[SDSORT_LIMIT][SORTED_LONGNAME_STORAGE];
+       #endif
       #endif
 
       // Folder sorting uses an isDir array when caching items.
@@ -361,9 +385,15 @@ private:
 };
 
 #if ENABLED(USB_FLASH_DRIVE_SUPPORT)
+<<<<<<< HEAD
   #define IS_SD_INSERTED() DiskIODriver_USBFlash::isInserted()
 #elif HAS_SD_DETECT
   #define IS_SD_INSERTED() (READ(SD_DETECT_PIN) == SD_DETECT_STATE)
+=======
+  #define IS_SD_INSERTED() Sd2Card::isInserted()
+#elif PIN_EXISTS(SD_DETECT)
+  #define IS_SD_INSERTED() (READ(SD_DETECT_PIN) == LOW)
+>>>>>>> 1775bfc02e (add mingda files)
 #else
   // No card detect line? Assume the card is inserted.
   #define IS_SD_INSERTED() true

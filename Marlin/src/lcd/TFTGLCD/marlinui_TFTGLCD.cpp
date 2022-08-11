@@ -342,10 +342,14 @@ void MarlinUI::init_lcd() {
   #if ENABLED(TFTGLCD_PANEL_SPI)
     // SPI speed must be less 10MHz
 <<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
     SET_OUTPUT(TFTGLCD_CS);
 =======
     _SET_OUTPUT(TFTGLCD_CS);
 >>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
+=======
+    SET_OUTPUT(TFTGLCD_CS);
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
     WRITE(TFTGLCD_CS, HIGH);
     spiInit(TERN(__STM32F1__, SPI_QUARTER_SPEED, SPI_FULL_SPEED));
     WRITE(TFTGLCD_CS, LOW);
@@ -1024,12 +1028,18 @@ void MarlinUI::draw_status_screen() {
   void MenuEditItemBase::draw_edit_screen(PGM_P const pstr, const char* const value/*=nullptr*/) {
     if (!PanelDetected) return;
     ui.encoder_direction_normal();
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
     lcd.setCursor(0, MIDDLE_Y);
 >>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
+=======
+    const uint8_t y = TERN0(AUTO_BED_LEVELING_UBL, ui.external_control) ? LCD_HEIGHT - 1 : MIDDLE_Y;
+    lcd.setCursor(0, y);
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
     lcd.write(COLOR_EDIT);
     lcd_put_u8str(fstr);
     if (value) {
       lcd.write(':');
+<<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
 <<<<<<< HEAD:Marlin/src/lcd/TFTGLCD/marlinui_TFTGLCD.cpp
       lcd_moveto((LCD_WIDTH - 1) - (utf8_strlen(value) + 1), y); // Right-justified, padded by spaces
       lcd.write(' ');                                               // Overwrite char if value gets shorter
@@ -1037,6 +1047,10 @@ void MarlinUI::draw_status_screen() {
       lcd.setCursor((LCD_WIDTH - 1) - (utf8_strlen(value) + 1), MIDDLE_Y);  // Right-justified, padded by spaces
       lcd.write(' ');     // Overwrite char if value gets shorter
 >>>>>>> 887e2637c0 (Fixes for TFTGLCD Panel, FastIO (#19614)):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
+=======
+      lcd.setCursor((LCD_WIDTH - 1) - (utf8_strlen(value) + 1), y); // Right-justified, padded by spaces
+      lcd.write(' ');                                               // Overwrite char if value gets shorter
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/lcd/TFTGLCD/ultralcd_TFTGLCD.cpp
       lcd.print(value);
       lcd.write(' ');
       lcd.print_line();

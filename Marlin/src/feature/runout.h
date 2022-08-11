@@ -117,9 +117,15 @@ class TFilamentMonitor : public FilamentMonitorBase {
     static void run() {
       if (enabled && !filament_ran_out && (printingIsActive() || did_pause_print)) {
         TERN_(HAS_FILAMENT_RUNOUT_DISTANCE, cli()); // Prevent RunoutResponseDelayed::block_completed from accumulating here
+<<<<<<< HEAD
         response.run();
         sensor.run();
         const uint8_t runout_flags = response.has_run_out();
+=======
+        response.run();   // 标志位值减少
+        sensor.run();     // 复位标志位（喂狗）
+        const bool ran_out = response.has_run_out();  // 判断标志位是否大于0
+>>>>>>> 1775bfc02e (add mingda files)
         TERN_(HAS_FILAMENT_RUNOUT_DISTANCE, sei());
         #if MULTI_FILAMENT_SENSOR
           #if ENABLED(WATCH_ALL_RUNOUT_SENSORS)
@@ -152,8 +158,13 @@ class TFilamentMonitor : public FilamentMonitorBase {
         #endif
 
         if (ran_out) {
+<<<<<<< HEAD
           filament_ran_out = true;
           event_filament_runout(extruder);
+=======
+          filament_ran_out = true;  // 确认材料已用完
+          event_filament_runout();  // 弹出弹窗，并执行M600命令
+>>>>>>> 1775bfc02e (add mingda files)
           planner.synchronize();
         }
       }
@@ -204,11 +215,19 @@ class FilamentSensorBase {
       #undef  INIT_RUNOUT_PIN
     }
 
+<<<<<<< HEAD
     // Return a bitmask of runout pin states
     static uint8_t poll_runout_pins() {
       #define _OR_RUNOUT(N) | (READ(FIL_RUNOUT##N##_PIN) ? _BV((N) - 1) : 0)
       return (0 REPEAT_1(NUM_RUNOUT_SENSORS, _OR_RUNOUT));
       #undef _OR_RUNOUT
+=======
+    // 返回一个runout引脚状态的位掩码（bitmask）
+    static inline uint8_t poll_runout_pins() {
+      #define _OR_RUNOUT(N) | (READ(FIL_RUNOUT##N##_PIN) ? _BV((N) - 1) : 0)
+      return (0 REPEAT_S(1, INCREMENT(NUM_RUNOUT_SENSORS), _OR_RUNOUT));  // 0|1 或者 0|0
+      #undef _OR_RUNOUT // 取消定义 _OR_RUNOUT ，之后引用会报错（如果不再定义）
+>>>>>>> 1775bfc02e (add mingda files)
     }
 
     // Return a bitmask of runout flag states (1 bits always indicates runout)
@@ -309,6 +328,7 @@ class FilamentSensorBase {
     public:
       static void block_completed(const block_t * const) {}
 
+<<<<<<< HEAD
       static void run() {
         LOOP_L_N(s, NUM_RUNOUT_SENSORS) {
           const bool out = poll_runout_state(s);
@@ -321,6 +341,19 @@ class FilamentSensorBase {
             }
           #endif
         }
+=======
+      static inline void run() {
+        const bool out = poll_runout_state(active_extruder);  // 检测断料检测开关的状态
+        if (!out) filament_present(active_extruder);          // 复位标志
+        #ifdef FILAMENT_RUNOUT_SENSOR_DEBUG
+          static bool was_out = false;
+          if (out != was_out) {
+            was_out = out;
+            SERIAL_ECHOPGM("Filament ");
+            serialprintPGM(out ? PSTR("OUT\n") : PSTR("IN\n"));
+          }
+        #endif
+>>>>>>> 1775bfc02e (add mingda files)
       }
   };
 

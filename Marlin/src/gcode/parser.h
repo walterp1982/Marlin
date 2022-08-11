@@ -248,8 +248,13 @@ public:
   // The code value pointer was set
   FORCE_INLINE static bool has_value() { return !!value_ptr; }
 
+<<<<<<< HEAD
   // Seen a parameter with a value
   static bool seenval(const char c) { return seen(c) && has_value(); }
+=======
+  // 是否为一个带值的参数，是返回true
+  static inline bool seenval(const char c) { return seen(c) && has_value(); }
+>>>>>>> 1775bfc02e (add mingda files)
 
   // The value as a string
   static char* value_string() { return value_ptr; }

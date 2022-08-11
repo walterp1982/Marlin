@@ -35,6 +35,22 @@
 #include "../../../module/probe.h"
 #include "../../queue.h"
 
+<<<<<<< HEAD
+=======
+#if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+  #include "../../../feature/babystep.h"
+#endif
+
+#if ENABLED(PROBE_TEMP_COMPENSATION)
+  #include "../../../feature/probe_temp_comp.h"
+  #include "../../../module/temperature.h"
+#endif
+
+#if HAS_DISPLAY
+  #include "../../../lcd/ultralcd.h"
+#endif
+
+>>>>>>> 1775bfc02e (add mingda files)
 #if ENABLED(AUTO_BED_LEVELING_LINEAR)
   #include "../../../libs/least_squares_fit.h"
 #endif
@@ -56,10 +72,19 @@
   #include "../../../module/tool_change.h"
 #endif
 
+<<<<<<< HEAD
 #define DEBUG_OUT ENABLED(DEBUG_LEVELING_FEATURE)
 #include "../../../core/debug_out.h"
 
 #if ABL_USES_GRID
+=======
+#include "../../../lcd/extui/lib/tsc/Menu/Popup.h"
+#if ENABLED(LEVELING_OFFSET)
+#include "../../../lcd/extui/lib/tsc/Menu/LevelingOffset.h"
+#endif
+
+#if ABL_GRID
+>>>>>>> 1775bfc02e (add mingda files)
   #if ENABLED(PROBE_Y_FIRST)
     #define PR_OUTER_VAR  abl.meshCount.x
     #define PR_OUTER_SIZE abl.grid_points.x
@@ -255,9 +280,14 @@ G29_TYPE GcodeSuite::G29() {
     G29_RETURN(false, false);
   }
 
+<<<<<<< HEAD
   // Send 'N' to force homing before G29 (internal only)
   if (parser.seen_test('N'))
     process_subcommands_now(TERN(CAN_SET_LEVELING_AFTER_G28, F("G28L0"), FPSTR(G28_STR)));
+=======
+  // 将本地变量定义为'static' 用于手动探测,否则定义为 'auto' 
+  #define ABL_VAR TERN_(PROBE_MANUALLY, static)
+>>>>>>> 1775bfc02e (add mingda files)
 
   // Don't allow auto-leveling without homing first
   if (homing_needed_error()) G29_RETURN(false, false);
@@ -277,15 +307,16 @@ G29_TYPE GcodeSuite::G29() {
   TERN_(FULL_REPORT_TO_HOST_FEATURE, set_and_report_grblstate(M_PROBE, false));
 
   /**
-   * On the initial G29 fetch command parameters.
+   * 获取G29的参数
    */
-  if (!g29_in_progress) {
+  if (!g29_in_progress) {   // 判定G29函数是否正在进行
 
     #if HAS_MULTI_HOTEND
       abl.tool_index = active_extruder;
       if (active_extruder != 0) tool_change(0, true);
     #endif
 
+<<<<<<< HEAD
     #if EITHER(PROBE_MANUALLY, AUTO_BED_LEVELING_LINEAR)
       abl.abl_probe_index = -1;
     #endif
@@ -295,8 +326,15 @@ G29_TYPE GcodeSuite::G29() {
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       const bool seen_w = parser.seen_test('W');
+=======
+    abl_should_enable = planner.leveling_active;  // 自动床调平已启用的标志，默认false
+
+    #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
+
+      const bool seen_w = parser.seen('W');   // 检测参数是否带有 W 参数，有返回true
+>>>>>>> 1775bfc02e (add mingda files)
       if (seen_w) {
-        if (!leveling_is_valid()) {
+        if (!leveling_is_valid()) {   // 检测是否拥有双线性网格
           SERIAL_ERROR_MSG("No bilinear grid");
           G29_RETURN(false, false);
         }
@@ -315,11 +353,19 @@ G29_TYPE GcodeSuite::G29() {
         #pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 
         if (!isnan(rx) && !isnan(ry)) {
+<<<<<<< HEAD
           // Get nearest i / j from rx / ry
           i = (rx - bedlevel.grid_start.x) / bedlevel.grid_spacing.x + 0.5f;
           j = (ry - bedlevel.grid_start.y) / bedlevel.grid_spacing.y + 0.5f;
           LIMIT(i, 0, (GRID_MAX_POINTS_X) - 1);
           LIMIT(j, 0, (GRID_MAX_POINTS_Y) - 1);
+=======
+          // 从rx / ry得到最近的i / j （其中i和j组成了双线性网格，像‘#’）
+          i = (rx - bilinear_start.x + 0.5 * gridSpacing.x) / gridSpacing.x;
+          j = (ry - bilinear_start.y + 0.5 * gridSpacing.y) / gridSpacing.y;
+          LIMIT(i, 0, GRID_MAX_POINTS_X - 1);
+          LIMIT(j, 0, GRID_MAX_POINTS_Y - 1);
+>>>>>>> 1775bfc02e (add mingda files)
         }
 
         #pragma GCC diagnostic pop
@@ -343,8 +389,13 @@ G29_TYPE GcodeSuite::G29() {
 
     #endif
 
+<<<<<<< HEAD
     // Jettison bed leveling data
     if (!seen_w && parser.seen_test('J')) {
+=======
+    // 抛弃床调整的(旧)数据并关闭平层补偿。此时EEPROM 中的数据不受影响。
+    if (!seen_w && parser.seen('J')) {
+>>>>>>> 1775bfc02e (add mingda files)
       reset_bed_level();
       G29_RETURN(false, false);
     }
@@ -384,19 +435,27 @@ G29_TYPE GcodeSuite::G29() {
       abl.mean = 0;
 
     #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
+<<<<<<< HEAD
 
       abl.Z_offset = parser.linearval('Z');
 
+=======
+      zoffset = parser.linearval('Z');  // 设置网格值时指定 Z 偏移。判断Z后面是否有数值，无为0
+>>>>>>> 1775bfc02e (add mingda files)
     #endif
 
     #if ABL_USES_GRID
 
+<<<<<<< HEAD
       xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_FEEDRATE));
+=======
+      xy_probe_feedrate_mm_s = MMM_TO_MMS(parser.linearval('S', XY_PROBE_SPEED));   // 获取X轴和Y轴之间的移动速度(mm/min)
+>>>>>>> 1775bfc02e (add mingda files)
 
-      const float x_min = probe.min_x(), x_max = probe.max_x(),
+      const float x_min = probe.min_x(), x_max = probe.max_x(),   // 获取探针活动范围
                   y_min = probe.min_y(), y_max = probe.max_y();
 
-      if (parser.seen('H')) {
+      if (parser.seen('H')) {   // 命令是否有 H 参数，H参数是用来设置要探测的区域的正方形宽度和高度的。
         const int16_t size = (int16_t)parser.value_linear_units();
         abl.probe_position_lf.set(_MAX((X_CENTER) - size / 2, x_min), _MAX((Y_CENTER) - size / 2, y_min));
         abl.probe_position_rb.set(_MIN(abl.probe_position_lf.x + size, x_max), _MIN(abl.probe_position_lf.y + size, y_max));
@@ -415,9 +474,15 @@ G29_TYPE GcodeSuite::G29() {
         G29_RETURN(false, false);
       }
 
+<<<<<<< HEAD
       // Probe at the points of a lattice grid
       abl.gridSpacing.set((abl.probe_position_rb.x - abl.probe_position_lf.x) / (abl.grid_points.x - 1),
                             (abl.probe_position_rb.y - abl.probe_position_lf.y) / (abl.grid_points.y - 1));
+=======
+      // 在网格的点上探测,gridSpacing是网格间距
+      gridSpacing.set((probe_position_rb.x - probe_position_lf.x) / (abl_grid_points.x - 1),
+                      (probe_position_rb.y - probe_position_lf.y) / (abl_grid_points.y - 1));
+>>>>>>> 1775bfc02e (add mingda files)
 
     #endif // ABL_USES_GRID
 
@@ -427,7 +492,7 @@ G29_TYPE GcodeSuite::G29() {
       SERIAL_EOL();
     }
 
-    planner.synchronize();
+    planner.synchronize();  // 阻塞
 
     #if ENABLED(AUTO_BED_LEVELING_3POINT)
       if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPGM("> 3-point Leveling");
@@ -488,10 +553,11 @@ G29_TYPE GcodeSuite::G29() {
       do_blocking_move_to(safe_position);
     #endif
 
-    // Disable auto bed leveling during G29.
-    // Be formal so G29 can be done successively without G28.
+    // G29期间关闭自动床调平。
+    // 要正式，这样G29就可以在没有G28的情况下连续完成。
     if (!no_action) set_bed_leveling_enabled(false);
 
+<<<<<<< HEAD
     // Deploy certain probes before starting probing
     #if ENABLED(BLTOUCH)
       do_z_clearance(Z_CLEARANCE_DEPLOY_PROBE);
@@ -499,6 +565,15 @@ G29_TYPE GcodeSuite::G29() {
       if (probe.deploy()) { // (returns true on deploy failure)
         set_bed_leveling_enabled(abl.reenable);
         G29_RETURN(false, true);
+=======
+    // 在开始探测之前部署某些探测
+    #if HAS_BED_PROBE
+      if (ENABLED(BLTOUCH))
+        do_z_clearance(Z_CLEARANCE_DEPLOY_PROBE);
+      else if (probe.deploy()) {
+        set_bed_leveling_enabled(abl_should_enable);
+        G29_RETURN(false);
+>>>>>>> 1775bfc02e (add mingda files)
       }
     #endif
 
@@ -728,9 +803,17 @@ G29_TYPE GcodeSuite::G29() {
 
           #elif ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
+<<<<<<< HEAD
             const float z = abl.measured_z + abl.Z_offset;
             abl.z_values[abl.meshCount.x][abl.meshCount.y] = z;
             TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(abl.meshCount, z));
+=======
+            z_values[meshCount.x][meshCount.y] = measured_z + zoffset;
+            // #if ENABLED(BABYSTEP_DISPLAY_TOTAL)
+            //     + babystep.axis_total[BS_TOTAL_IND(Z_AXIS)] * planner.steps_to_mm[Z_AXIS];
+            // #endif
+            TERN_(EXTENSIBLE_UI, ExtUI::onMeshUpdate(meshCount, z_values[meshCount.x][meshCount.y]));
+>>>>>>> 1775bfc02e (add mingda files)
 
           #endif
 
@@ -796,8 +879,13 @@ G29_TYPE GcodeSuite::G29() {
     TERN_(LCD_BED_LEVELING, ui.wait_for_move = false);
   #endif
 
+<<<<<<< HEAD
   // Calculate leveling, print reports, correct the position
   if (!isnan(abl.measured_z)) {
+=======
+  // Calculate leveling, print reports, correct the position.// 计算水准，打印报表，校正位置
+  if (!isnan(measured_z)) {
+>>>>>>> 1775bfc02e (add mingda files)
     #if ENABLED(AUTO_BED_LEVELING_BILINEAR)
 
       if (abl.dryrun)
@@ -934,11 +1022,26 @@ G29_TYPE GcodeSuite::G29() {
       // Auto Bed Leveling is complete! Enable if possible.
       if (!abl.dryrun || abl.reenable) set_bed_leveling_enabled(true);
 
+<<<<<<< HEAD
     #endif
 
   } // !isnan(abl.measured_z)
+=======
+        // 取消应用偏移量，因为它将被立即应用并引起 Z 轴上的补偿运动
+        const float fade_scaling_factor = TERN(ENABLE_LEVELING_FADE_HEIGHT, planner.fade_scaling_factor_for_z(current_position.z), 1);
+        current_position.z -= fade_scaling_factor * bilinear_z_offset(current_position);
 
-  // Restore state after probing
+        if (DEBUGGING(LEVELING)) DEBUG_ECHOLNPAIR(" corrected Z:", current_position.z);
+      }
+
+    #endif // ABL_PLANAR
+
+    // Auto Bed Leveling is complete! Enable if possible.完成自动调平！如果可以的话
+    planner.leveling_active = dryrun ? abl_should_enable : true;
+  } // !isnan(measured_z)
+>>>>>>> 1775bfc02e (add mingda files)
+
+  // Restore state after probing.//探测完成后重置状态(速度和缩放比例)
   if (!faux) restore_feedrate_and_scaling();
 
   TERN_(HAS_BED_PROBE, probe.move_z_after_probing());
@@ -953,7 +1056,13 @@ G29_TYPE GcodeSuite::G29() {
 
   report_current_position();
 
+<<<<<<< HEAD
   G29_RETURN(isnan(abl.measured_z), true);
+=======
+  ABL_STATUS = ABL_DONE;
+  TERN_(LEVELING_OFFSET, oldLevelingOffset = 0;)
+  G29_RETURN(isnan(measured_z));
+>>>>>>> 1775bfc02e (add mingda files)
 }
 
 #endif // HAS_ABL_NOT_UBL

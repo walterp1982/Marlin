@@ -184,6 +184,9 @@ typedef struct { raw_adc_t value; celsius_t celsius; } temp_entry_t;
 #if ANY_THERMISTOR_IS(331) // Like table 1, but with 3V3 as input voltage for MEGA
   #include "thermistor_331.h"
 #endif
+#if ANY_THERMISTOR_IS(301) // MD-D301 100K B3950 4.7k 3V3 as input voltage
+  #include "thermistor_301.h"
+#endif
 #if ANY_THERMISTOR_IS(332) // Like table 1, but with 3V3 as input voltage for DUE
   #include "thermistor_332.h"
 #endif

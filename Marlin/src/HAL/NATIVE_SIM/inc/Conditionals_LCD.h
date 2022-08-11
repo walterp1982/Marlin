@@ -20,3 +20,10 @@
  *
  */
 #pragma once
+<<<<<<< HEAD:Marlin/src/HAL/NATIVE_SIM/inc/Conditionals_LCD.h
+=======
+
+// #if HAS_SPI_TFT || HAS_FSMC_TFT
+//   #error "Sorry! TFT displays are not available for HAL/STM32F4_F7."
+// #endif
+>>>>>>> 1775bfc02e (add mingda files):Marlin/src/HAL/STM32_F4_F7/inc/Conditionals_LCD.h

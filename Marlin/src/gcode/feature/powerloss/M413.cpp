@@ -45,6 +45,7 @@ void GcodeSuite::M413() {
 
   #if ENABLED(DEBUG_POWER_LOSS_RECOVERY)
     if (parser.seen("RL")) recovery.load();
+<<<<<<< HEAD
     if (parser.seen_test('W')) recovery.save(true);
     if (parser.seen_test('P')) recovery.purge();
     if (parser.seen_test('D')) recovery.debug(F("M413"));
@@ -52,6 +53,18 @@ void GcodeSuite::M413() {
     if (parser.seen_test('C')) (void)recovery.check();
     if (parser.seen_test('E')) SERIAL_ECHOF(recovery.exists() ? F("PLR Exists\n") : F("No PLR\n"));
     if (parser.seen_test('V')) SERIAL_ECHOF(recovery.valid() ? F("Valid\n") : F("Invalid\n"));
+=======
+    // if (parser.seen('W')) recovery.save(true);
+    if (parser.seen('WS')) {recovery.save(true); recovery.write();}
+    TERN_(HAS_UDISK, if (parser.seen('WU')) {recovery.save(true); recovery.usb_write();})
+    if (parser.seen('P')) recovery.purge();
+    if (parser.seen('D')) recovery.debug(PSTR("M413"));
+    #if PIN_EXISTS(POWER_LOSS)
+      if (parser.seen('O')) recovery._outage();
+    #endif
+    if (parser.seen('E')) serialprintPGM(recovery.exists() ? PSTR("PLR Exists\n") : PSTR("No PLR\n"));
+    if (parser.seen('V')) serialprintPGM(recovery.valid() ? PSTR("Valid\n") : PSTR("Invalid\n"));
+>>>>>>> 1775bfc02e (add mingda files)
   #endif
 }
 

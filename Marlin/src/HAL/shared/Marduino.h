@@ -30,8 +30,12 @@
 #undef _BV            // Redefined by some
 #undef SBI            // Redefined by arduino/const_functions.h
 #undef CBI            // Redefined by arduino/const_functions.h
+<<<<<<< HEAD
 #undef sq             // Redefined by teensy3/wiring.h
 #undef UNUSED         // Redefined by stm32f4xx_hal_def.h
+=======
+// #undef UNUSED         // Redefined by stm32f4xx_hal_def.h
+>>>>>>> 1775bfc02e (add mingda files)
 
 #include <Arduino.h>  // NOTE: If included earlier then this line is a NOOP
 

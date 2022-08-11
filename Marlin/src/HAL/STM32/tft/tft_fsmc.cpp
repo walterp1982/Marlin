@@ -170,5 +170,28 @@ void TFT_FSMC::TransmitDMA(uint32_t MemoryIncrease, uint16_t *Data, uint16_t Cou
   Abort();
 }
 
+// extern uint16_t bmp_buffer[6553];  //65kb buffer for ui bmp data
+// typedef union
+// {
+// 	uint16_t color;
+// 	struct{
+// 	uint16_t  b:5;
+// 	uint16_t  g:6;
+// 	uint16_t  r:5;
+//  }RGB;
+// }GUI_POINT;
+
+// GUI_POINT p;
+// void TFT_FSMC::testRGB()
+// {
+//   for(int i=0; i<6553; ++i) {
+//     p.RGB.r = 0xFF;
+//     p.RGB.g = 0x00;
+//     p.RGB.b = 0x00;
+//     bmp_buffer[i] = p.color;
+//   }
+//   WriteSequence(bmp_buffer, 6553);
+// }
+
 #endif // HAS_FSMC_TFT
 #endif // HAL_STM32
